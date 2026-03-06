@@ -4,7 +4,6 @@ import { toast } from "sonner";
 import { supabase } from "@/integrations/supabase/client";
 
 const ADMIN_PASSWORD = "472370";
-import AdminPanel from "../components/AdminPanel";
 
 type Empreendimento = {
   id: string;
