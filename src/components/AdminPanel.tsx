@@ -494,7 +494,7 @@ const AdminPanel = () => {
 
             {/* ... outros modals (fotos, links, etc) ... */}
 
-            {activeModal === "depo" && (
+                       {activeModal === "depo" && (
               <div className="space-y-3">
                 <textarea
                   value={novoDepoimento}
@@ -505,7 +505,10 @@ const AdminPanel = () => {
                 <button
                   onClick={async () => {
                     if (!novoDepoimento) return toast.error("Digite um texto!");
-                    const { error } = await supabase.from("depoimentos").insert({ texto: novoDepoimento });
+                    const { error } = await supabase
+                      .from("depoimentos")
+                      .insert({ texto: novoDepoimento });
+
                     if (error) {
                       toast.error("Erro ao salvar");
                     } else {
@@ -520,9 +523,9 @@ const AdminPanel = () => {
                 </button>
               </div>
             )}
-          </div>
-        </div>
-      )}
+          </div> {/* Fecha div do conteúdo do modal */}
+        </div>   {/* Fecha div do modal/overlay */}
+      {/* Caso exista um parêntese aberto antes do activeModal, feche-o aqui */}
     </>
   );
 };
