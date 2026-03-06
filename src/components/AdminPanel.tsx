@@ -524,7 +524,7 @@ const AdminPanel = () => {
             </div>
           )}
         </div> {/* Fechamento da div que envolve o conteúdo do modal ativo */}
-      </div>   {/* Fechamento da div principal que envolve o modal inteiro */}
+      /}   {/* Fechamento da div principal que envolve o modal inteiro */}
       )
        </>
   );
