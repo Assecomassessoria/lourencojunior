@@ -14,6 +14,38 @@ export type Database = {
   }
   public: {
     Tables: {
+      empreendimento_fotos: {
+        Row: {
+          created_at: string
+          empreendimento_id: string
+          foto_url: string
+          id: string
+          ordem: number | null
+        }
+        Insert: {
+          created_at?: string
+          empreendimento_id: string
+          foto_url: string
+          id?: string
+          ordem?: number | null
+        }
+        Update: {
+          created_at?: string
+          empreendimento_id?: string
+          foto_url?: string
+          id?: string
+          ordem?: number | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "empreendimento_fotos_empreendimento_id_fkey"
+            columns: ["empreendimento_id"]
+            isOneToOne: false
+            referencedRelation: "empreendimentos"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       empreendimentos: {
         Row: {
           ativo: boolean | null

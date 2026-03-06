@@ -16,6 +16,12 @@ type Empreendimento = {
   ordem: number | null;
 };
 
+type Foto = {
+  id: string;
+  foto_url: string;
+  ordem: number | null;
+};
+
 const AdminPanel = () => {
   const [isOpen, setIsOpen] = useState(false);
   const [isAuthenticated, setIsAuthenticated] = useState(false);
@@ -28,14 +34,15 @@ const AdminPanel = () => {
   const [descricao, setDescricao] = useState("");
   const [detalhe, setDetalhe] = useState("");
   const [preco, setPreco] = useState("Sob Consulta");
-  const [imageFile, setImageFile] = useState<File | null>(null);
+  const [imageFiles, setImageFiles] = useState<File[]>([]);
   const [saving, setSaving] = useState(false);
 
   // Manage photos state
   const [empreendimentos, setEmpreendimentos] = useState<Empreendimento[]>([]);
   const [selectedEmpId, setSelectedEmpId] = useState<string>("");
+  const [empFotos, setEmpFotos] = useState<Foto[]>([]);
   const [dragOver, setDragOver] = useState(false);
-  const [photoFile, setPhotoFile] = useState<File | null>(null);
+  const [photoFiles, setPhotoFiles] = useState<File[]>([]);
 
   const handleToggle = () => {
     if (isOpen) { setIsOpen(false); return; }
@@ -64,6 +71,15 @@ const AdminPanel = () => {
     if (data) setEmpreendimentos(data);
   }, []);
 
+  const loadFotosForEmp = useCallback(async (empId: string) => {
+    const { data } = await supabase
+      .from("empreendimento_fotos")
+      .select("id, foto_url, ordem")
+      .eq("empreendimento_id", empId)
+      .order("ordem", { ascending: true });
+    if (data) setEmpFotos(data);
+  }, []);
+
   const openModal = async (id: string) => {
     if (id === "fotos" || id === "add") {
       await loadEmpreendimentos();
@@ -74,7 +90,7 @@ const AdminPanel = () => {
 
   const uploadImage = async (file: File, path: string) => {
     const ext = file.name.split(".").pop();
-    const fileName = `${path}-${Date.now()}.${ext}`;
+    const fileName = `${path}-${Date.now()}-${Math.random().toString(36).slice(2)}.${ext}`;
     const { error } = await supabase.storage
       .from("empreendimentos")
       .upload(fileName, file, { upsert: true });
@@ -88,60 +104,112 @@ const AdminPanel = () => {
   const handleAddEmpreendimento = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!nome) { toast.error("Nome é obrigatório"); return; }
+    if (imageFiles.length < 6) { toast.error("Adicione pelo menos 6 fotos (mínimo 6, máximo 10)"); return; }
+    if (imageFiles.length > 10) { toast.error("Máximo de 10 fotos permitidas"); return; }
+
     setSaving(true);
     try {
-      let imagem_url: string | null = null;
-      if (imageFile) {
-        imagem_url = await uploadImage(imageFile, nome.toLowerCase().replace(/\s+/g, "-"));
-      }
-      const { error } = await supabase.from("empreendimentos").insert({
-        nome, descricao, detalhe, preco, imagem_url,
+      const slug = nome.toLowerCase().replace(/\s+/g, "-");
+      // Insert empreendimento
+      const { data: empData, error } = await supabase.from("empreendimentos").insert({
+        nome, descricao, detalhe, preco,
+        imagem_url: null,
         ordem: empreendimentos.length + 1,
-      });
+      }).select("id").single();
       if (error) throw error;
-      toast.success("Empreendimento adicionado!");
+
+      // Upload all photos
+      for (let i = 0; i < imageFiles.length; i++) {
+        const url = await uploadImage(imageFiles[i], slug);
+        await supabase.from("empreendimento_fotos").insert({
+          empreendimento_id: empData.id,
+          foto_url: url,
+          ordem: i,
+        });
+      }
+
+      toast.success("Empreendimento adicionado com " + imageFiles.length + " fotos!");
       setNome(""); setDescricao(""); setDetalhe(""); setPreco("Sob Consulta");
-      setImageFile(null); setActiveModal(null);
+      setImageFiles([]); setActiveModal(null);
     } catch (err: any) {
       toast.error("Erro ao salvar: " + err.message);
     } finally { setSaving(false); }
   };
 
+  const handleSelectEmp = async (empId: string) => {
+    setSelectedEmpId(empId);
+    setPhotoFiles([]);
+    await loadFotosForEmp(empId);
+  };
+
   const handlePhotoUpload = async () => {
-    if (!selectedEmpId || !photoFile) {
-      toast.error("Selecione o empreendimento e a foto");
+    if (!selectedEmpId || photoFiles.length === 0) {
+      toast.error("Selecione fotos para upload");
+      return;
+    }
+    const totalFotos = empFotos.length + photoFiles.length;
+    if (totalFotos > 10) {
+      toast.error(`Máximo 10 fotos. Já tem ${empFotos.length}, pode adicionar mais ${10 - empFotos.length}.`);
       return;
     }
     setSaving(true);
     try {
-      const url = await uploadImage(photoFile, selectedEmpId);
-      const { error } = await supabase.from("empreendimentos")
-        .update({ imagem_url: url })
-        .eq("id", selectedEmpId);
-      if (error) throw error;
-      toast.success("Foto atualizada!");
-      setPhotoFile(null); setSelectedEmpId(""); setActiveModal(null);
+      for (let i = 0; i < photoFiles.length; i++) {
+        const url = await uploadImage(photoFiles[i], selectedEmpId);
+        await supabase.from("empreendimento_fotos").insert({
+          empreendimento_id: selectedEmpId,
+          foto_url: url,
+          ordem: empFotos.length + i,
+        });
+      }
+      toast.success(photoFiles.length + " foto(s) adicionada(s)!");
+      setPhotoFiles([]);
+      await loadFotosForEmp(selectedEmpId);
     } catch (err: any) {
       toast.error("Erro: " + err.message);
     } finally { setSaving(false); }
   };
 
+  const handleDeleteFoto = async (fotoId: string) => {
+    if (empFotos.length <= 6) {
+      toast.error("Mínimo de 6 fotos. Adicione outra antes de remover.");
+      return;
+    }
+    const { error } = await supabase.from("empreendimento_fotos").delete().eq("id", fotoId);
+    if (error) { toast.error("Erro ao excluir foto"); return; }
+    toast.success("Foto removida!");
+    await loadFotosForEmp(selectedEmpId);
+  };
+
   const handleDeleteEmpreendimento = async (id: string) => {
-    if (!confirm("Excluir este empreendimento?")) return;
+    if (!confirm("Excluir este empreendimento e todas as fotos?")) return;
     const { error } = await supabase.from("empreendimentos").delete().eq("id", id);
     if (error) { toast.error("Erro ao excluir"); return; }
     toast.success("Excluído!");
     await loadEmpreendimentos();
+    if (selectedEmpId === id) { setSelectedEmpId(""); setEmpFotos([]); }
   };
 
-  const handleDrop = useCallback((e: React.DragEvent) => {
+  const handleDrop = useCallback((e: React.DragEvent, target: "add" | "manage") => {
     e.preventDefault();
     setDragOver(false);
-    const file = e.dataTransfer.files[0];
-    if (file && file.type.startsWith("image/")) {
-      setPhotoFile(file);
+    const files = Array.from(e.dataTransfer.files).filter(f => f.type.startsWith("image/"));
+    if (target === "add") {
+      setImageFiles(prev => [...prev, ...files].slice(0, 10));
+    } else {
+      setPhotoFiles(prev => [...prev, ...files].slice(0, 10));
     }
   }, []);
+
+  const handleFileSelect = (files: FileList | null, target: "add" | "manage") => {
+    if (!files) return;
+    const arr = Array.from(files).filter(f => f.type.startsWith("image/"));
+    if (target === "add") {
+      setImageFiles(prev => [...prev, ...arr].slice(0, 10));
+    } else {
+      setPhotoFiles(prev => [...prev, ...arr].slice(0, 10));
+    }
+  };
 
   const menuItems = [
     { id: "add", label: "Novo Empreendimento", icon: Plus },
@@ -202,19 +270,35 @@ const AdminPanel = () => {
                 <textarea placeholder="Descrição (ex: Apartamentos Com 38m²...)" value={descricao} onChange={(e) => setDescricao(e.target.value)} className="w-full border border-border p-3 rounded-lg bg-background text-foreground font-body h-20" />
                 <textarea placeholder="Detalhes (ex: 2 e 3 dormitórios...)" value={detalhe} onChange={(e) => setDetalhe(e.target.value)} className="w-full border border-border p-3 rounded-lg bg-background text-foreground font-body h-20" />
                 <input placeholder="Preço (ex: Sob Consulta)" value={preco} onChange={(e) => setPreco(e.target.value)} className="w-full border border-border p-3 rounded-lg bg-background text-foreground font-body" />
+                
                 <div
                   className={`border-2 border-dashed rounded-lg p-6 text-center cursor-pointer transition-colors ${dragOver ? "border-accent bg-accent/10" : "border-border"}`}
                   onDragOver={(e) => { e.preventDefault(); setDragOver(true); }}
                   onDragLeave={() => setDragOver(false)}
-                  onDrop={(e) => { e.preventDefault(); setDragOver(false); const f = e.dataTransfer.files[0]; if (f?.type.startsWith("image/")) setImageFile(f); }}
+                  onDrop={(e) => handleDrop(e, "add")}
                   onClick={() => document.getElementById("add-img-input")?.click()}
                 >
                   <Upload className="w-8 h-8 mx-auto mb-2 text-muted-foreground" />
                   <p className="text-sm text-muted-foreground font-body">
-                    {imageFile ? imageFile.name : "Arraste uma foto ou clique para selecionar"}
+                    {imageFiles.length > 0
+                      ? `${imageFiles.length} foto(s) selecionada(s)`
+                      : "Arraste fotos ou clique (6 a 10 fotos)"}
                   </p>
-                  <input id="add-img-input" type="file" accept="image/*" className="hidden" onChange={(e) => { if (e.target.files?.[0]) setImageFile(e.target.files[0]); }} />
+                  <p className="text-xs text-muted-foreground mt-1">Mínimo 6, máximo 10 fotos</p>
+                  <input id="add-img-input" type="file" accept="image/*" multiple className="hidden" onChange={(e) => handleFileSelect(e.target.files, "add")} />
                 </div>
+
+                {imageFiles.length > 0 && (
+                  <div className="grid grid-cols-5 gap-2">
+                    {imageFiles.map((f, i) => (
+                      <div key={i} className="relative">
+                        <img src={URL.createObjectURL(f)} alt="" className="w-full h-16 object-cover rounded" />
+                        <button type="button" onClick={() => setImageFiles(prev => prev.filter((_, idx) => idx !== i))} className="absolute -top-1 -right-1 bg-destructive text-destructive-foreground rounded-full w-4 h-4 flex items-center justify-center text-xs">×</button>
+                      </div>
+                    ))}
+                  </div>
+                )}
+
                 <button type="submit" disabled={saving} className="btn-gold w-full py-3 rounded-lg">
                   {saving ? "Salvando..." : "Salvar"}
                 </button>
@@ -223,14 +307,12 @@ const AdminPanel = () => {
 
             {activeModal === "fotos" && (
               <div className="space-y-4">
-                {/* List existing */}
                 <div className="space-y-2">
                   {empreendimentos.map((emp) => (
                     <div key={emp.id} className="flex items-center gap-3 p-2 rounded-lg border border-border">
-                      {emp.imagem_url && <img src={emp.imagem_url} alt={emp.nome} className="w-16 h-12 object-cover rounded" />}
                       <span className="flex-1 text-sm font-body text-foreground">{emp.nome}</span>
-                      <button onClick={() => setSelectedEmpId(emp.id)} className={`text-xs px-3 py-1 rounded ${selectedEmpId === emp.id ? "bg-accent text-primary" : "border border-border text-muted-foreground"}`}>
-                        Trocar Foto
+                      <button onClick={() => handleSelectEmp(emp.id)} className={`text-xs px-3 py-1 rounded ${selectedEmpId === emp.id ? "bg-accent text-primary" : "border border-border text-muted-foreground"}`}>
+                        Gerenciar
                       </button>
                       <button onClick={() => handleDeleteEmpreendimento(emp.id)} className="text-destructive hover:text-destructive/80">
                         <Trash2 className="w-4 h-4" />
@@ -240,24 +322,41 @@ const AdminPanel = () => {
                 </div>
 
                 {selectedEmpId && (
-                  <>
-                    <div
-                      className={`border-2 border-dashed rounded-lg p-8 text-center cursor-pointer transition-colors ${dragOver ? "border-accent bg-accent/10" : "border-border"}`}
-                      onDragOver={(e) => { e.preventDefault(); setDragOver(true); }}
-                      onDragLeave={() => setDragOver(false)}
-                      onDrop={handleDrop}
-                      onClick={() => document.getElementById("photo-input")?.click()}
-                    >
-                      <Upload className="w-10 h-10 mx-auto mb-2 text-muted-foreground" />
-                      <p className="text-sm text-muted-foreground font-body">
-                        {photoFile ? photoFile.name : "Arraste a foto aqui ou clique para selecionar"}
-                      </p>
-                      <input id="photo-input" type="file" accept="image/*" className="hidden" onChange={(e) => { if (e.target.files?.[0]) setPhotoFile(e.target.files[0]); }} />
-                    </div>
-                    <button onClick={handlePhotoUpload} disabled={saving || !photoFile} className="btn-gold w-full py-3 rounded-lg">
-                      {saving ? "Enviando..." : "Fazer Upload"}
-                    </button>
-                  </>
+                  <div className="space-y-3 border-t border-border pt-4">
+                    <p className="text-sm font-bold text-foreground">Fotos ({empFotos.length}/10) — mínimo 6</p>
+                    
+                    {empFotos.length > 0 && (
+                      <div className="grid grid-cols-4 gap-2">
+                        {empFotos.map((foto) => (
+                          <div key={foto.id} className="relative">
+                            <img src={foto.foto_url} alt="" className="w-full h-16 object-cover rounded" />
+                            <button onClick={() => handleDeleteFoto(foto.id)} className="absolute -top-1 -right-1 bg-destructive text-destructive-foreground rounded-full w-4 h-4 flex items-center justify-center text-xs">×</button>
+                          </div>
+                        ))}
+                      </div>
+                    )}
+
+                    {empFotos.length < 10 && (
+                      <>
+                        <div
+                          className={`border-2 border-dashed rounded-lg p-6 text-center cursor-pointer transition-colors ${dragOver ? "border-accent bg-accent/10" : "border-border"}`}
+                          onDragOver={(e) => { e.preventDefault(); setDragOver(true); }}
+                          onDragLeave={() => setDragOver(false)}
+                          onDrop={(e) => handleDrop(e, "manage")}
+                          onClick={() => document.getElementById("photo-input")?.click()}
+                        >
+                          <Upload className="w-8 h-8 mx-auto mb-2 text-muted-foreground" />
+                          <p className="text-sm text-muted-foreground font-body">
+                            {photoFiles.length > 0 ? `${photoFiles.length} foto(s) prontas` : "Arraste ou clique para adicionar"}
+                          </p>
+                          <input id="photo-input" type="file" accept="image/*" multiple className="hidden" onChange={(e) => handleFileSelect(e.target.files, "manage")} />
+                        </div>
+                        <button onClick={handlePhotoUpload} disabled={saving || photoFiles.length === 0} className="btn-gold w-full py-3 rounded-lg">
+                          {saving ? "Enviando..." : "Fazer Upload"}
+                        </button>
+                      </>
+                    )}
+                  </div>
                 )}
               </div>
             )}
