@@ -14,6 +14,30 @@ export type Database = {
   }
   public: {
     Tables: {
+      depoimentos: {
+        Row: {
+          ativo: boolean | null
+          autor: string | null
+          created_at: string
+          id: string
+          texto: string
+        }
+        Insert: {
+          ativo?: boolean | null
+          autor?: string | null
+          created_at?: string
+          id?: string
+          texto: string
+        }
+        Update: {
+          ativo?: boolean | null
+          autor?: string | null
+          created_at?: string
+          id?: string
+          texto?: string
+        }
+        Relationships: []
+      }
       empreendimento_fotos: {
         Row: {
           created_at: string
@@ -82,6 +106,30 @@ export type Database = {
           ordem?: number | null
           preco?: string | null
           updated_at?: string
+        }
+        Relationships: []
+      }
+      site_config: {
+        Row: {
+          chave: string
+          id: string
+          tipo: string
+          updated_at: string
+          valor: string
+        }
+        Insert: {
+          chave: string
+          id?: string
+          tipo?: string
+          updated_at?: string
+          valor?: string
+        }
+        Update: {
+          chave?: string
+          id?: string
+          tipo?: string
+          updated_at?: string
+          valor?: string
         }
         Relationships: []
       }
