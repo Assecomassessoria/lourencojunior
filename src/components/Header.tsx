@@ -19,7 +19,7 @@ const Header = () => {
     >
       <div className="container mx-auto px-4 py-4 flex justify-between items-center">
         <a href="#inicio" className="text-2xl font-display font-bold text-primary tracking-tighter">
-          LOURENÇO <span className="text-accent">JUNIOR-Consultor Imobiliário</span>
+          LOURENÇO <span className="text-accent">JUNIOR - Consultor Imobiliário</span>
         </a>
         <a href="#inico" className="text-1x1 font-dispaly font-bold text-primary tracking-tighter"></a>
 
