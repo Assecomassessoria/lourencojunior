@@ -110,7 +110,8 @@ const EmpreendimentosSection = () => {
           id: "fallback",
           nome: "OASIS MIRAGE",
           descricao: "Apartamentos Com 38m² | 45m² | 46m² | 60m².",
-          detalhe: "Apartamentos de 2 e 3 dormitórios com suíte na Zona Leste. Lazer completo.",
+          detalhe:
+            "Com 2 e 3 dormitórios com suíte na Zona Leste. Lazer completo. Torra B e C entrega em 2026. Aproveite condições especiais",
           preco: "Sob Consulta",
           imagem_url: null,
         },
