@@ -32,7 +32,9 @@ const ImageCarousel = ({ imagens, nome }: { imagens: string[]; nome: string }) =
   useEffect(() => {
     if (!emblaApi) return;
     emblaApi.on("select", onSelect);
-    return () => { emblaApi.off("select", onSelect); };
+    return () => {
+      emblaApi.off("select", onSelect);
+    };
   }, [emblaApi, onSelect]);
 
   return (
@@ -41,11 +43,7 @@ const ImageCarousel = ({ imagens, nome }: { imagens: string[]; nome: string }) =
         <div className="flex h-full">
           {imagens.map((src, index) => (
             <div key={index} className="flex-[0_0_100%] min-w-0 h-full">
-              <img
-                src={src}
-                alt={`${nome} - foto ${index + 1}`}
-                className="w-full h-full object-cover"
-              />
+              <img src={src} alt={`${nome} - foto ${index + 1}`} className="w-full h-full object-cover" />
             </div>
           ))}
         </div>
@@ -54,13 +52,19 @@ const ImageCarousel = ({ imagens, nome }: { imagens: string[]; nome: string }) =
       {imagens.length > 1 && (
         <>
           <button
-            onClick={(e) => { e.preventDefault(); emblaApi?.scrollPrev(); }}
+            onClick={(e) => {
+              e.preventDefault();
+              emblaApi?.scrollPrev();
+            }}
             className="absolute left-2 top-1/2 -translate-y-1/2 bg-primary/60 hover:bg-primary/80 text-accent rounded-full p-1.5 transition-colors"
           >
             <ChevronLeft className="w-4 h-4" />
           </button>
           <button
-            onClick={(e) => { e.preventDefault(); emblaApi?.scrollNext(); }}
+            onClick={(e) => {
+              e.preventDefault();
+              emblaApi?.scrollNext();
+            }}
             className="absolute right-2 top-1/2 -translate-y-1/2 bg-primary/60 hover:bg-primary/80 text-accent rounded-full p-1.5 transition-colors"
           >
             <ChevronRight className="w-4 h-4" />
@@ -101,18 +105,16 @@ const EmpreendimentosSection = () => {
     if (empRes.data && empRes.data.length > 0) {
       setEmpreendimentos(empRes.data);
     } else {
-      setEmpreendimentos([{
-        id: "fallback",
-        nome: "OASIS MIRAGE",
-        descricao: "Apartamentos Com 38m² | 45m² | 46m² | 60m².",
-        detalhe: "Apartamentos de 2 e 3 dormitórios com suíte na Zona Leste. Lazer completo.
-          PERTO DE TUDO, IDEAL PARA VOCÊ. ARES TRANQUILOS E FUNCIONALIDADE ADMIRÁVEL, ESSA É
-          A CIDADE DE SOROCABA. ENTRE ÁREAS VERDES, SEGURANÇA E RENOMADAS INDÚSTRIAS, HÁ QUALIDADE 
-          DE VIDA, DIVERSÃO E ALEGRIA. VOCÊ NO CENTRO DE TUDO, PRÓXIMOS A IMPORTANTES EIXOS COMERCIAIS, 
-          ESCOLAS RENOMADAS E MOBILIDADE ACESSÍVEL. É MAIS QUE UM LAR: É UM NOVO CONCEITO EM VIVER BEM.",
-        preco: "Sob Consulta",
-        imagem_url: null,
-      }]);
+      setEmpreendimentos([
+        {
+          id: "fallback",
+          nome: "OASIS MIRAGE",
+          descricao: "Apartamentos Com 38m² | 45m² | 46m² | 60m².",
+          detalhe: "Apartamentos de 2 e 3 dormitórios com suíte na Zona Leste. Lazer completo.",
+          preco: "Sob Consulta",
+          imagem_url: null,
+        },
+      ]);
     }
 
     // Build fotos map
@@ -137,7 +139,9 @@ const EmpreendimentosSection = () => {
       .on("postgres_changes", { event: "*", schema: "public", table: "empreendimento_fotos" }, () => fetchData())
       .subscribe();
 
-    return () => { supabase.removeChannel(channel); };
+    return () => {
+      supabase.removeChannel(channel);
+    };
   }, []);
 
   return (
@@ -161,11 +165,7 @@ const EmpreendimentosSection = () => {
             {empreendimentos.map((emp, i) => {
               // Use fotos from the fotos table, fallback to imagem_url, then to default image
               const fotos = fotosMap[emp.id];
-              const imagens = fotos && fotos.length > 0
-                ? fotos
-                : emp.imagem_url
-                  ? [emp.imagem_url]
-                  : [empreendimento1];
+              const imagens = fotos && fotos.length > 0 ? fotos : emp.imagem_url ? [emp.imagem_url] : [empreendimento1];
 
               return (
                 <motion.div
