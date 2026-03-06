@@ -494,38 +494,39 @@ const AdminPanel = () => {
 
             {/* ... outros modals (fotos, links, etc) ... */}
 
-                       {activeModal === "depo" && (
-              <div className="space-y-3">
-                <textarea
-                  value={novoDepoimento}
-                  onChange={(e) => setNovoDepoimento(e.target.value)}
-                  placeholder="Novo depoimento..."
-                  className="w-full border border-border p-3 rounded-lg bg-background text-foreground font-body h-24"
-                />
-                <button
-                  onClick={async () => {
-                    if (!novoDepoimento) return toast.error("Digite um texto!");
-                    const { error } = await supabase
-                      .from("depoimentos")
-                      .insert({ texto: novoDepoimento });
+          {/* ... outros modals (fotos, links, etc) ... */}
 
-                    if (error) {
-                      toast.error("Erro ao salvar");
-                    } else {
-                      toast.success("Depoimento postado!");
-                      setNovoDepoimento("");
-                      setActiveModal(null);
-                    }
-                  }}
-                  className="btn-gold w-full py-3 rounded-lg"
-                >
-                  Postar
-                </button>
-              </div>
-            )}
-          </div> {/* Fecha div do conteúdo do modal */}
-        </div>   {/* Fecha div do modal/overlay */}
-      {/* Caso exista um parêntese aberto antes do activeModal, feche-o aqui */}
+          {activeModal === "depo" && (
+            <div className="space-y-3">
+              <textarea
+                value={novoDepoimento}
+                onChange={(e) => setNovoDepoimento(e.target.value)}
+                placeholder="Novo depoimento..."
+                className="w-full border border-border p-3 rounded-lg bg-background text-foreground font-body h-24"
+              />
+              <button
+                onClick={async () => {
+                  if (!novoDepoimento) return toast.error("Digite um texto!");
+                  const { error } = await supabase
+                    .from("depoimentos")
+                    .insert({ texto: novoDepoimento });
+
+                  if (error) {
+                    toast.error("Erro ao salvar");
+                  } else {
+                    toast.success("Depoimento postado!");
+                    setNovoDepoimento("");
+                    setActiveModal(null);
+                  }
+                }}
+                className="btn-gold w-full py-3 rounded-lg"
+              >
+                Postar
+              </button>
+            </div>
+          )}
+        </div> {/* Fechamento da div que envolve o conteúdo do modal ativo */}
+      </div>   {/* Fechamento da div principal que envolve o modal inteiro */}
     </>
   );
 };
