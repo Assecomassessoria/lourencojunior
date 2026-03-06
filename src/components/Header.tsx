@@ -21,21 +21,43 @@ const Header = () => {
         <a href="#inicio" className="text-2xl font-display font-bold text-primary tracking-tighter">
           LOURENÇO <span className="text-accent">JUNIOR</span>
         </a>
+        <a href="#inico" className="text-1x1 font-dispaly font-bold text-primary tracking-tighter"></a>
 
         <nav className="hidden md:flex items-center space-x-6 font-medium font-body text-sm">
-          <a href="#inicio" className="text-foreground hover:text-accent transition">Início</a>
-          <a href="#empreendimentos" className="text-foreground hover:text-accent transition">Empreendimentos</a>
-          <a href="#sobre" className="text-foreground hover:text-accent transition">Sobre</a>
+          <a href="#inicio" className="text-foreground hover:text-accent transition">
+            Início
+          </a>
+          <a href="#empreendimentos" className="text-foreground hover:text-accent transition">
+            Empreendimentos
+          </a>
+          <a href="#sobre" className="text-foreground hover:text-accent transition">
+            Sobre
+          </a>
           <div className="flex items-center gap-3 border-l pl-6 border-border">
-            <a href="https://simuladorcorretorelite.com.br/" target="_blank" rel="noreferrer" className="text-xs font-bold uppercase text-accent hover:text-gold-dark transition">
+            <a
+              href="https://simuladorcorretorelite.com.br/"
+              target="_blank"
+              rel="noreferrer"
+              className="text-xs font-bold uppercase text-accent hover:text-gold-dark transition"
+            >
               Simulador Elite 4.0
             </a>
             <span className="text-border">|</span>
-            <a href="https://assecomassessoria.net.br/" target="_blank" rel="noreferrer" className="text-xs font-bold uppercase text-muted-foreground hover:text-accent transition">
+            <a
+              href="https://assecomassessoria.net.br/"
+              target="_blank"
+              rel="noreferrer"
+              className="text-xs font-bold uppercase text-muted-foreground hover:text-accent transition"
+            >
               Acesso Simulador
             </a>
             <span className="text-border">|</span>
-            <a href="https://assecom.net.br/" target="_blank" rel="noreferrer" className="text-xs font-bold uppercase text-muted-foreground hover:text-accent transition">
+            <a
+              href="https://assecom.net.br/"
+              target="_blank"
+              rel="noreferrer"
+              className="text-xs font-bold uppercase text-muted-foreground hover:text-accent transition"
+            >
               Limpa Nome
             </a>
           </div>
@@ -59,10 +81,26 @@ const Header = () => {
 
       {menuOpen && (
         <div className="md:hidden bg-card border-t border-border px-4 py-4 space-y-3 font-body">
-          <a href="#inicio" onClick={() => setMenuOpen(false)} className="block text-foreground hover:text-accent">Início</a>
-          <a href="#empreendimentos" onClick={() => setMenuOpen(false)} className="block text-foreground hover:text-accent">Empreendimentos</a>
-          <a href="#sobre" onClick={() => setMenuOpen(false)} className="block text-foreground hover:text-accent">Sobre</a>
-          <a href="#fale-conosco" onClick={() => setMenuOpen(false)} className="block text-foreground hover:text-accent">Fale Conosco</a>
+          <a href="#inicio" onClick={() => setMenuOpen(false)} className="block text-foreground hover:text-accent">
+            Início
+          </a>
+          <a
+            href="#empreendimentos"
+            onClick={() => setMenuOpen(false)}
+            className="block text-foreground hover:text-accent"
+          >
+            Empreendimentos
+          </a>
+          <a href="#sobre" onClick={() => setMenuOpen(false)} className="block text-foreground hover:text-accent">
+            Sobre
+          </a>
+          <a
+            href="#fale-conosco"
+            onClick={() => setMenuOpen(false)}
+            className="block text-foreground hover:text-accent"
+          >
+            Fale Conosco
+          </a>
         </div>
       )}
     </header>
