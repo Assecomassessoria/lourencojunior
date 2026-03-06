@@ -103,9 +103,13 @@ const EmpreendimentosSection = () => {
     } else {
       setEmpreendimentos([{
         id: "fallback",
-        nome: "Oasis Mirage",
+        nome: "OASIS MIRAGE",
         descricao: "Apartamentos Com 38m² | 45m² | 46m² | 60m².",
-        detalhe: "Apartamentos de 2 e 3 dormitórios com suíte na Zona Leste. Lazer completo.",
+        detalhe: "Apartamentos de 2 e 3 dormitórios com suíte na Zona Leste. Lazer completo.
+          PERTO DE TUDO, IDEAL PARA VOCÊ. ARES TRANQUILOS E FUNCIONALIDADE ADMIRÁVEL, ESSA É
+          A CIDADE DE SOROCABA. ENTRE ÁREAS VERDES, SEGURANÇA E RENOMADAS INDÚSTRIAS, HÁ QUALIDADE 
+          DE VIDA, DIVERSÃO E ALEGRIA. VOCÊ NO CENTRO DE TUDO, PRÓXIMOS A IMPORTANTES EIXOS COMERCIAIS, 
+          ESCOLAS RENOMADAS E MOBILIDADE ACESSÍVEL. É MAIS QUE UM LAR: É UM NOVO CONCEITO EM VIVER BEM.",
         preco: "Sob Consulta",
         imagem_url: null,
       }]);
