@@ -558,9 +558,7 @@ const AdminPanel = () => {
               </div>
             )}
           </div> {/* Fechamento do conteúdo do modal */}
-        </div>   {/* Fechamento do container principal do modal */}
-      )}
-    </>
+        </>
   );
 };
 
