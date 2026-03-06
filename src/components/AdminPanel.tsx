@@ -527,38 +527,39 @@ const AdminPanel = () => {
               </div>
             )}
             
-          {activeModal === "depo" && (
-    <div className="space-y-3">
-    <textarea
-      value={novoDepoimento}
-      onChange={(e) => setNovoDepoimento(e.target.value)}
-      placeholder="Novo depoimento..."
-      className="w-full border border-border p-3 rounded-lg bg-background text-foreground font-body h-24"
-    />
-    <button
-      onClick={async () => {
-        if (!novoDepoimento) return toast.error("Digite um texto!");
-        
-        // Exemplo de salvamento real:
-        const { error } = await supabase
-          .from("depoimentos") // Verifique se o nome da tabela está correto
-          .insert({ texto: novoDepoimento });
+                    {activeModal === "depo" && (
+              <div className="space-y-3">
+                <textarea
+                  value={novoDepoimento}
+                  onChange={(e) => setNovoDepoimento(e.target.value)}
+                  placeholder="Novo depoimento..."
+                  className="w-full border border-border p-3 rounded-lg bg-background text-foreground font-body h-24"
+                />
+                <button
+                  onClick={async () => {
+                    if (!novoDepoimento) return toast.error("Digite um texto!");
+                    
+                    const { error } = await supabase
+                      .from("depoimentos")
+                      .insert({ texto: novoDepoimento });
 
-        if (error) {
-          toast.error("Erro ao salvar");
-        } else {
-          toast.success("Depoimento postado!");
-          setNovoDepoimento("");
-          setActiveModal(null);
-        }
-      }}
-      className="btn-gold w-full py-3 rounded-lg"
-    >
-      Postar
-    </button>
-  </div>
-)}
-
+                    if (error) {
+                      toast.error("Erro ao salvar");
+                    } else {
+                      toast.success("Depoimento postado!");
+                      setNovoDepoimento("");
+                      setActiveModal(null);
+                    }
+                  }}
+                  className="btn-gold w-full py-3 rounded-lg"
+                >
+                  Postar
+                </button>
+              </div>
+            )}
+          </div> {/* Fechamento do conteúdo do modal */}
+        </div>   {/* Fechamento do container principal do modal */}
+      )}
     </>
   );
 };
