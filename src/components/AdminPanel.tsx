@@ -45,8 +45,15 @@ const AdminPanel = () => {
   const [photoFiles, setPhotoFiles] = useState<File[]>([]);
 
   const handleToggle = () => {
-    if (isOpen) { setIsOpen(false); return; }
-    if (isAuthenticated) { setIsOpen(true); } else { setShowPasswordInput(true); }
+    if (isOpen) {
+      setIsOpen(false);
+      return;
+    }
+    if (isAuthenticated) {
+      setIsOpen(true);
+    } else {
+      setShowPasswordInput(true);
+    }
   };
 
   const handleLogin = (e: React.FormEvent) => {
@@ -64,10 +71,7 @@ const AdminPanel = () => {
   };
 
   const loadEmpreendimentos = useCallback(async () => {
-    const { data } = await supabase
-      .from("empreendimentos")
-      .select("*")
-      .order("ordem", { ascending: true });
+    const { data } = await supabase.from("empreendimentos").select("*").order("ordem", { ascending: true });
     if (data) setEmpreendimentos(data);
   }, []);
 
@@ -85,37 +89,48 @@ const AdminPanel = () => {
       await loadEmpreendimentos();
     }
     setActiveModal(id);
-    setIsOpen(false);
   };
 
   const uploadImage = async (file: File, path: string) => {
     const ext = file.name.split(".").pop();
     const fileName = `${path}-${Date.now()}-${Math.random().toString(36).slice(2)}.${ext}`;
-    const { error } = await supabase.storage
-      .from("empreendimentos")
-      .upload(fileName, file, { upsert: true });
+    const { error } = await supabase.storage.from("empreendimentos").upload(fileName, file, { upsert: true });
     if (error) throw error;
-    const { data: urlData } = supabase.storage
-      .from("empreendimentos")
-      .getPublicUrl(fileName);
+    const { data: urlData } = supabase.storage.from("empreendimentos").getPublicUrl(fileName);
     return urlData.publicUrl;
   };
 
   const handleAddEmpreendimento = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!nome) { toast.error("Nome é obrigatório"); return; }
-    if (imageFiles.length < 6) { toast.error("Adicione pelo menos 6 fotos (mínimo 6, máximo 10)"); return; }
-    if (imageFiles.length > 10) { toast.error("Máximo de 10 fotos permitidas"); return; }
+    if (!nome) {
+      toast.error("Nome é obrigatório");
+      return;
+    }
+    if (imageFiles.length < 6) {
+      toast.error("Adicione pelo menos 6 fotos (mínimo 6, máximo 10)");
+      return;
+    }
+    if (imageFiles.length > 10) {
+      toast.error("Máximo de 10 fotos permitidas");
+      return;
+    }
 
     setSaving(true);
     try {
       const slug = nome.toLowerCase().replace(/\s+/g, "-");
       // Insert empreendimento
-      const { data: empData, error } = await supabase.from("empreendimentos").insert({
-        nome, descricao, detalhe, preco,
-        imagem_url: null,
-        ordem: empreendimentos.length + 1,
-      }).select("id").single();
+      const { data: empData, error } = await supabase
+        .from("empreendimentos")
+        .insert({
+          nome,
+          descricao,
+          detalhe,
+          preco,
+          imagem_url: null,
+          ordem: empreendimentos.length + 1,
+        })
+        .select("id")
+        .single();
       if (error) throw error;
 
       // Upload all photos
@@ -129,11 +144,17 @@ const AdminPanel = () => {
       }
 
       toast.success("Empreendimento adicionado com " + imageFiles.length + " fotos!");
-      setNome(""); setDescricao(""); setDetalhe(""); setPreco("Sob Consulta");
-      setImageFiles([]); setActiveModal(null);
+      setNome("");
+      setDescricao("");
+      setDetalhe("");
+      setPreco("Sob Consulta");
+      setImageFiles([]);
+      setActiveModal(null);
     } catch (err: any) {
       toast.error("Erro ao salvar: " + err.message);
-    } finally { setSaving(false); }
+    } finally {
+      setSaving(false);
+    }
   };
 
   const handleSelectEmp = async (empId: string) => {
@@ -167,7 +188,9 @@ const AdminPanel = () => {
       await loadFotosForEmp(selectedEmpId);
     } catch (err: any) {
       toast.error("Erro: " + err.message);
-    } finally { setSaving(false); }
+    } finally {
+      setSaving(false);
+    }
   };
 
   const handleDeleteFoto = async (fotoId: string) => {
@@ -176,7 +199,10 @@ const AdminPanel = () => {
       return;
     }
     const { error } = await supabase.from("empreendimento_fotos").delete().eq("id", fotoId);
-    if (error) { toast.error("Erro ao excluir foto"); return; }
+    if (error) {
+      toast.error("Erro ao excluir foto");
+      return;
+    }
     toast.success("Foto removida!");
     await loadFotosForEmp(selectedEmpId);
   };
@@ -184,30 +210,36 @@ const AdminPanel = () => {
   const handleDeleteEmpreendimento = async (id: string) => {
     if (!confirm("Excluir este empreendimento e todas as fotos?")) return;
     const { error } = await supabase.from("empreendimentos").delete().eq("id", id);
-    if (error) { toast.error("Erro ao excluir"); return; }
+    if (error) {
+      toast.error("Erro ao excluir");
+      return;
+    }
     toast.success("Excluído!");
     await loadEmpreendimentos();
-    if (selectedEmpId === id) { setSelectedEmpId(""); setEmpFotos([]); }
+    if (selectedEmpId === id) {
+      setSelectedEmpId("");
+      setEmpFotos([]);
+    }
   };
 
   const handleDrop = useCallback((e: React.DragEvent, target: "add" | "manage") => {
     e.preventDefault();
     setDragOver(false);
-    const files = Array.from(e.dataTransfer.files).filter(f => f.type.startsWith("image/"));
+    const files = Array.from(e.dataTransfer.files).filter((f) => f.type.startsWith("image/"));
     if (target === "add") {
-      setImageFiles(prev => [...prev, ...files].slice(0, 10));
+      setImageFiles((prev) => [...prev, ...files].slice(0, 10));
     } else {
-      setPhotoFiles(prev => [...prev, ...files].slice(0, 10));
+      setPhotoFiles((prev) => [...prev, ...files].slice(0, 10));
     }
   }, []);
 
   const handleFileSelect = (files: FileList | null, target: "add" | "manage") => {
     if (!files) return;
-    const arr = Array.from(files).filter(f => f.type.startsWith("image/"));
+    const arr = Array.from(files).filter((f) => f.type.startsWith("image/"));
     if (target === "add") {
-      setImageFiles(prev => [...prev, ...arr].slice(0, 10));
+      setImageFiles((prev) => [...prev, ...arr].slice(0, 10));
     } else {
-      setPhotoFiles(prev => [...prev, ...arr].slice(0, 10));
+      setPhotoFiles((prev) => [...prev, ...arr].slice(0, 10));
     }
   };
 
@@ -223,7 +255,10 @@ const AdminPanel = () => {
     <>
       {/* FAB Button */}
       <div className="fixed bottom-6 left-6 z-50">
-        <button onClick={handleToggle} className="bg-primary w-12 h-12 rounded-full text-accent shadow-xl flex items-center justify-center hover:scale-110 transition-transform">
+        <button
+          onClick={handleToggle}
+          className="bg-primary w-12 h-12 rounded-full text-accent shadow-xl flex items-center justify-center hover:scale-110 transition-transform"
+        >
           <Settings className="w-5 h-5" />
         </button>
 
@@ -231,10 +266,28 @@ const AdminPanel = () => {
           <div className="absolute bottom-14 left-0 bg-card p-4 rounded-xl shadow-2xl border border-border w-64">
             <form onSubmit={handleLogin} className="space-y-3">
               <p className="text-sm font-bold text-primary font-body">Senha de administrador</p>
-              <input type="password" value={password} onChange={(e) => setPassword(e.target.value)} placeholder="Digite a senha" className="w-full p-2 border border-border rounded-lg bg-background text-foreground text-sm outline-none focus:ring-2 focus:ring-accent" autoFocus />
+              <input
+                type="password"
+                value={password}
+                onChange={(e) => setPassword(e.target.value)}
+                placeholder="Digite a senha"
+                className="w-full p-2 border border-border rounded-lg bg-background text-foreground text-sm outline-none focus:ring-2 focus:ring-accent"
+                autoFocus
+              />
               <div className="flex gap-2">
-                <button type="submit" className="btn-gold text-xs py-2 px-4 rounded-lg flex-1">Entrar</button>
-                <button type="button" onClick={() => { setShowPasswordInput(false); setPassword(""); }} className="text-xs py-2 px-3 rounded-lg border border-border text-muted-foreground">Cancelar</button>
+                <button type="submit" className="btn-gold text-xs py-2 px-4 rounded-lg flex-1">
+                  Entrar
+                </button>
+                <button
+                  type="button"
+                  onClick={() => {
+                    setShowPasswordInput(false);
+                    setPassword("");
+                  }}
+                  className="text-xs py-2 px-3 rounded-lg border border-border text-muted-foreground"
+                >
+                  Cancelar
+                </button>
               </div>
             </form>
           </div>
@@ -245,7 +298,11 @@ const AdminPanel = () => {
             <h5 className="font-display font-bold border-b border-border mb-4 pb-2 text-primary">Painel do Site</h5>
             <ul className="space-y-3">
               {menuItems.map((item) => (
-                <li key={item.id} onClick={() => openModal(item.id)} className="cursor-pointer text-foreground hover:text-accent flex items-center gap-3 text-sm font-medium font-body transition-colors">
+                <li
+                  key={item.id}
+                  onClick={() => openModal(item.id)}
+                  className="cursor-pointer text-foreground hover:text-accent flex items-center gap-3 text-sm font-medium font-body transition-colors"
+                >
                   <item.icon className="w-4 h-4" />
                   {item.label}
                 </li>
@@ -257,23 +314,57 @@ const AdminPanel = () => {
 
       {/* Modals */}
       {activeModal && (
-        <div className="fixed inset-0 bg-primary/70 backdrop-blur-sm z-[100] flex items-center justify-center" onClick={() => setActiveModal(null)}>
-          <div className="bg-card p-8 rounded-xl max-w-lg w-full m-4 shadow-2xl border border-border max-h-[90vh] overflow-y-auto" onClick={(e) => e.stopPropagation()}>
+        <div
+          className="fixed inset-0 bg-primary/70 backdrop-blur-sm z-[100] flex items-center justify-center"
+          onClick={() => setActiveModal(null)}
+        >
+          <div
+            className="bg-card p-8 rounded-xl max-w-lg w-full m-4 shadow-2xl border border-border max-h-[90vh] overflow-y-auto"
+            onClick={(e) => e.stopPropagation()}
+          >
             <div className="flex justify-between items-center mb-4">
-              <h3 className="font-display font-bold text-primary text-lg">{menuItems.find((m) => m.id === activeModal)?.label}</h3>
-              <button onClick={() => setActiveModal(null)} className="text-muted-foreground hover:text-foreground"><X className="w-5 h-5" /></button>
+              <h3 className="font-display font-bold text-primary text-lg">
+                {menuItems.find((m) => m.id === activeModal)?.label}
+              </h3>
+              <button onClick={() => setActiveModal(null)} className="text-muted-foreground hover:text-foreground">
+                <X className="w-5 h-5" />
+              </button>
             </div>
 
             {activeModal === "add" && (
               <form onSubmit={handleAddEmpreendimento} className="space-y-3">
-                <input placeholder="Nome do Empreendimento *" value={nome} onChange={(e) => setNome(e.target.value)} required className="w-full border border-border p-3 rounded-lg bg-background text-foreground font-body" />
-                <textarea placeholder="Descrição (ex: Apartamentos Com 38m²...)" value={descricao} onChange={(e) => setDescricao(e.target.value)} className="w-full border border-border p-3 rounded-lg bg-background text-foreground font-body h-20" />
-                <textarea placeholder="Detalhes (ex: 2 e 3 dormitórios...)" value={detalhe} onChange={(e) => setDetalhe(e.target.value)} className="w-full border border-border p-3 rounded-lg bg-background text-foreground font-body h-20" />
-                <input placeholder="Preço (ex: Sob Consulta)" value={preco} onChange={(e) => setPreco(e.target.value)} className="w-full border border-border p-3 rounded-lg bg-background text-foreground font-body" />
-                
+                <input
+                  placeholder="Nome do Empreendimento *"
+                  value={nome}
+                  onChange={(e) => setNome(e.target.value)}
+                  required
+                  className="w-full border border-border p-3 rounded-lg bg-background text-foreground font-body"
+                />
+                <textarea
+                  placeholder="Descrição (ex: Apartamentos Com 38m²...)"
+                  value={descricao}
+                  onChange={(e) => setDescricao(e.target.value)}
+                  className="w-full border border-border p-3 rounded-lg bg-background text-foreground font-body h-20"
+                />
+                <textarea
+                  placeholder="Detalhes (ex: 2 e 3 dormitórios...)"
+                  value={detalhe}
+                  onChange={(e) => setDetalhe(e.target.value)}
+                  className="w-full border border-border p-3 rounded-lg bg-background text-foreground font-body h-20"
+                />
+                <input
+                  placeholder="Preço (ex: Sob Consulta)"
+                  value={preco}
+                  onChange={(e) => setPreco(e.target.value)}
+                  className="w-full border border-border p-3 rounded-lg bg-background text-foreground font-body"
+                />
+
                 <div
                   className={`border-2 border-dashed rounded-lg p-6 text-center cursor-pointer transition-colors ${dragOver ? "border-accent bg-accent/10" : "border-border"}`}
-                  onDragOver={(e) => { e.preventDefault(); setDragOver(true); }}
+                  onDragOver={(e) => {
+                    e.preventDefault();
+                    setDragOver(true);
+                  }}
                   onDragLeave={() => setDragOver(false)}
                   onDrop={(e) => handleDrop(e, "add")}
                   onClick={() => document.getElementById("add-img-input")?.click()}
@@ -285,7 +376,14 @@ const AdminPanel = () => {
                       : "Arraste fotos ou clique (6 a 10 fotos)"}
                   </p>
                   <p className="text-xs text-muted-foreground mt-1">Mínimo 6, máximo 10 fotos</p>
-                  <input id="add-img-input" type="file" accept="image/*" multiple className="hidden" onChange={(e) => handleFileSelect(e.target.files, "add")} />
+                  <input
+                    id="add-img-input"
+                    type="file"
+                    accept="image/*"
+                    multiple
+                    className="hidden"
+                    onChange={(e) => handleFileSelect(e.target.files, "add")}
+                  />
                 </div>
 
                 {imageFiles.length > 0 && (
@@ -293,7 +391,13 @@ const AdminPanel = () => {
                     {imageFiles.map((f, i) => (
                       <div key={i} className="relative">
                         <img src={URL.createObjectURL(f)} alt="" className="w-full h-16 object-cover rounded" />
-                        <button type="button" onClick={() => setImageFiles(prev => prev.filter((_, idx) => idx !== i))} className="absolute -top-1 -right-1 bg-destructive text-destructive-foreground rounded-full w-4 h-4 flex items-center justify-center text-xs">×</button>
+                        <button
+                          type="button"
+                          onClick={() => setImageFiles((prev) => prev.filter((_, idx) => idx !== i))}
+                          className="absolute -top-1 -right-1 bg-destructive text-destructive-foreground rounded-full w-4 h-4 flex items-center justify-center text-xs"
+                        >
+                          ×
+                        </button>
                       </div>
                     ))}
                   </div>
@@ -311,10 +415,16 @@ const AdminPanel = () => {
                   {empreendimentos.map((emp) => (
                     <div key={emp.id} className="flex items-center gap-3 p-2 rounded-lg border border-border">
                       <span className="flex-1 text-sm font-body text-foreground">{emp.nome}</span>
-                      <button onClick={() => handleSelectEmp(emp.id)} className={`text-xs px-3 py-1 rounded ${selectedEmpId === emp.id ? "bg-accent text-primary" : "border border-border text-muted-foreground"}`}>
+                      <button
+                        onClick={() => handleSelectEmp(emp.id)}
+                        className={`text-xs px-3 py-1 rounded ${selectedEmpId === emp.id ? "bg-accent text-primary" : "border border-border text-muted-foreground"}`}
+                      >
                         Gerenciar
                       </button>
-                      <button onClick={() => handleDeleteEmpreendimento(emp.id)} className="text-destructive hover:text-destructive/80">
+                      <button
+                        onClick={() => handleDeleteEmpreendimento(emp.id)}
+                        className="text-destructive hover:text-destructive/80"
+                      >
                         <Trash2 className="w-4 h-4" />
                       </button>
                     </div>
@@ -324,13 +434,18 @@ const AdminPanel = () => {
                 {selectedEmpId && (
                   <div className="space-y-3 border-t border-border pt-4">
                     <p className="text-sm font-bold text-foreground">Fotos ({empFotos.length}/10) — mínimo 6</p>
-                    
+
                     {empFotos.length > 0 && (
                       <div className="grid grid-cols-4 gap-2">
                         {empFotos.map((foto) => (
                           <div key={foto.id} className="relative">
                             <img src={foto.foto_url} alt="" className="w-full h-16 object-cover rounded" />
-                            <button onClick={() => handleDeleteFoto(foto.id)} className="absolute -top-1 -right-1 bg-destructive text-destructive-foreground rounded-full w-4 h-4 flex items-center justify-center text-xs">×</button>
+                            <button
+                              onClick={() => handleDeleteFoto(foto.id)}
+                              className="absolute -top-1 -right-1 bg-destructive text-destructive-foreground rounded-full w-4 h-4 flex items-center justify-center text-xs"
+                            >
+                              ×
+                            </button>
                           </div>
                         ))}
                       </div>
@@ -340,18 +455,34 @@ const AdminPanel = () => {
                       <>
                         <div
                           className={`border-2 border-dashed rounded-lg p-6 text-center cursor-pointer transition-colors ${dragOver ? "border-accent bg-accent/10" : "border-border"}`}
-                          onDragOver={(e) => { e.preventDefault(); setDragOver(true); }}
+                          onDragOver={(e) => {
+                            e.preventDefault();
+                            setDragOver(true);
+                          }}
                           onDragLeave={() => setDragOver(false)}
                           onDrop={(e) => handleDrop(e, "manage")}
                           onClick={() => document.getElementById("photo-input")?.click()}
                         >
                           <Upload className="w-8 h-8 mx-auto mb-2 text-muted-foreground" />
                           <p className="text-sm text-muted-foreground font-body">
-                            {photoFiles.length > 0 ? `${photoFiles.length} foto(s) prontas` : "Arraste ou clique para adicionar"}
+                            {photoFiles.length > 0
+                              ? `${photoFiles.length} foto(s) prontas`
+                              : "Arraste ou clique para adicionar"}
                           </p>
-                          <input id="photo-input" type="file" accept="image/*" multiple className="hidden" onChange={(e) => handleFileSelect(e.target.files, "manage")} />
+                          <input
+                            id="photo-input"
+                            type="file"
+                            accept="image/*"
+                            multiple
+                            className="hidden"
+                            onChange={(e) => handleFileSelect(e.target.files, "manage")}
+                          />
                         </div>
-                        <button onClick={handlePhotoUpload} disabled={saving || photoFiles.length === 0} className="btn-gold w-full py-3 rounded-lg">
+                        <button
+                          onClick={handlePhotoUpload}
+                          disabled={saving || photoFiles.length === 0}
+                          className="btn-gold w-full py-3 rounded-lg"
+                        >
                           {saving ? "Enviando..." : "Fazer Upload"}
                         </button>
                       </>
@@ -363,20 +494,53 @@ const AdminPanel = () => {
 
             {activeModal === "textos" && (
               <div className="space-y-3">
-                <textarea placeholder="Novo texto..." className="w-full border border-border p-3 rounded-lg bg-background text-foreground font-body h-32" />
-                <button onClick={() => { toast.success("Funcionalidade em desenvolvimento"); setActiveModal(null); }} className="btn-gold w-full py-3 rounded-lg">Atualizar</button>
+                <textarea
+                  placeholder="Novo texto..."
+                  className="w-full border border-border p-3 rounded-lg bg-background text-foreground font-body h-32"
+                />
+                <button
+                  onClick={() => {
+                    toast.success("Funcionalidade em desenvolvimento");
+                    setActiveModal(null);
+                  }}
+                  className="btn-gold w-full py-3 rounded-lg"
+                >
+                  Atualizar
+                </button>
               </div>
             )}
             {activeModal === "links" && (
               <div className="space-y-3">
-                <input placeholder="URL" className="w-full border border-border p-3 rounded-lg bg-background text-foreground font-body" />
-                <button onClick={() => { toast.success("Funcionalidade em desenvolvimento"); setActiveModal(null); }} className="btn-gold w-full py-3 rounded-lg">Salvar Links</button>
+                <input
+                  placeholder="URL"
+                  className="w-full border border-border p-3 rounded-lg bg-background text-foreground font-body"
+                />
+                <button
+                  onClick={() => {
+                    toast.success("Funcionalidade em desenvolvimento");
+                    setActiveModal(null);
+                  }}
+                  className="btn-gold w-full py-3 rounded-lg"
+                >
+                  Salvar Links
+                </button>
               </div>
             )}
             {activeModal === "depo" && (
               <div className="space-y-3">
-                <textarea placeholder="Novo depoimento..." className="w-full border border-border p-3 rounded-lg bg-background text-foreground font-body h-24" />
-                <button onClick={() => { toast.success("Funcionalidade em desenvolvimento"); setActiveModal(null); }} className="btn-gold w-full py-3 rounded-lg">Postar</button>
+                <textarea
+                  placeholder="Novo depoimento..."
+                  className="w-full border border-border p-3 rounded-lg bg-background text-foreground font-body h-24"
+                />
+                <button
+                  onClick={() => {
+                    toast.success("Funcionalidade em desenvolvimento");
+                    setActiveModal(null);
+                  }}
+                  className="btn-gold w-full py-3 rounded-lg"
+                >
+                  Postar
+                </button>
               </div>
             )}
           </div>
