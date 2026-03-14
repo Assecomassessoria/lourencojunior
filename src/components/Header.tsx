@@ -1,5 +1,6 @@
 import { useState, useEffect } from "react";
 import { Phone, Menu, X } from "lucide-react";
+import logoImg from "@/assets/logo-lourenco.png";
 
 const Header = () => {
   const [scrolled, setScrolled] = useState(false);
@@ -18,10 +19,12 @@ const Header = () => {
       }`}
     >
       <div className="container mx-auto px-4 py-4 flex justify-between items-center">
-        <a href="#inicio" className="text-2xl font-display font-bold text-primary tracking-tighter">
-          LOURENÇO <span className="text-accent">JUNIOR - Consultor Imobiliário</span>
+        <a href="#inicio" className="flex items-center gap-3">
+          <img src={logoImg} alt="Logo Lourenço Junior" className="h-10" />
+          <span className="text-xl font-display font-bold text-primary tracking-tighter">
+            LOURENÇO <span className="text-accent">JUNIOR</span>
+          </span>
         </a>
-        <a href="#inico" className="text-1x1 font-dispaly font-bold text-primary tracking-tighter"></a>
 
         <nav className="hidden md:flex items-center space-x-6 font-medium font-body text-sm">
           <a href="#inicio" className="text-foreground hover:text-accent transition">
