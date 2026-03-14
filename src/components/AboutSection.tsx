@@ -22,6 +22,7 @@ const AboutSection = () => {
           viewport={{ once: true }}
           className="flex-1 text-center md:text-left"
         >
+          <img src={logoImg} alt="Logo Lourenço Junior" className="h-16 mb-3 mx-auto md:mx-0" />
           <h3 className="text-3xl font-display font-bold text-primary uppercase">Lourenço Junior</h3>
           <p className="text-accent font-semibold mb-4 text-lg font-body">Consultor Imobiliário - CRECI 237.626/F</p>
           <p className="text-muted-foreground max-w-xl mb-6 font-body leading-relaxed">
