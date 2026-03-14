@@ -1,6 +1,7 @@
 import { motion } from "framer-motion";
 import { Phone, Mail } from "lucide-react";
 import profileImg from "@/assets/profile-lourenco.jpg";
+import logoImg from "@/assets/logo-lourenco.png";
 
 const AboutSection = () => {
   return (
