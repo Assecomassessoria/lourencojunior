@@ -108,22 +108,18 @@ const AdminPanel = () => {
   }, []);
 
   const loadDepoimentos = useCallback(async () => {
-    const { data } = await supabase
-      .from("depoimentos")
-      .select("*")
-      .order("created_at", { ascending: false });
+    const { data } = await supabase.from("depoimentos").select("*").order("created_at", { ascending: false });
     if (data) setDepoimentos(data as Depoimento[]);
   }, []);
 
   const loadSiteConfigs = useCallback(async (tipo: string) => {
-    const { data } = await supabase
-      .from("site_config")
-      .select("*")
-      .eq("tipo", tipo);
+    const { data } = await supabase.from("site_config").select("*").eq("tipo", tipo);
     if (data) {
       setSiteConfigs(data as SiteConfig[]);
       const vals: Record<string, string> = {};
-      (data as SiteConfig[]).forEach((c) => { vals[c.chave] = c.valor; });
+      (data as SiteConfig[]).forEach((c) => {
+        vals[c.chave] = c.valor;
+      });
       setConfigValues(vals);
     }
   }, []);
@@ -161,11 +157,11 @@ const AdminPanel = () => {
       return;
     }
     if (imageFiles.length < 6) {
-      toast.error("Adicione pelo menos 6 fotos (mínimo 6, máximo 10)");
+      toast.error("Adicione pelo menos 6 fotos (mínimo 6, máximo 12)");
       return;
     }
-    if (imageFiles.length > 10) {
-      toast.error("Máximo de 10 fotos permitido");
+    if (imageFiles.length > 12) {
+      toast.error("Máximo de 12 fotos permitido");
       return;
     }
 
@@ -174,7 +170,13 @@ const AdminPanel = () => {
       const slug = nome.toLowerCase().replace(/\s+/g, "-");
       const { data: empData, error } = await supabase
         .from("empreendimentos")
-        .insert({ nome, descricao: descricao || null, detalhe: detalhe || null, preco: preco || "Sob Consulta", ordem: empreendimentos.length + 1 })
+        .insert({
+          nome,
+          descricao: descricao || null,
+          detalhe: detalhe || null,
+          preco: preco || "Sob Consulta",
+          ordem: empreendimentos.length + 1,
+        })
         .select("id")
         .single();
 
@@ -214,7 +216,7 @@ const AdminPanel = () => {
       const urlParts = foto.foto_url.split("/");
       const fileName = urlParts[urlParts.length - 1];
       await supabase.storage.from("empreendimentos").remove([fileName]);
-      
+
       const { error } = await supabase.from("empreendimento_fotos").delete().eq("id", foto.id);
       if (error) throw error;
       toast.success("Foto removida!");
@@ -234,8 +236,10 @@ const AdminPanel = () => {
       return;
     }
     const totalFotos = empFotos.length + photoFiles.length;
-    if (totalFotos > 10) {
-      toast.error(`Máximo 10 fotos. Atualmente há ${empFotos.length}, você pode adicionar até ${10 - empFotos.length}.`);
+    if (totalFotos > 12) {
+      toast.error(
+        `Máximo 12 fotos. Atualmente há ${empFotos.length}, você pode adicionar até ${12 - empFotos.length}.`,
+      );
       return;
     }
 
@@ -243,7 +247,7 @@ const AdminPanel = () => {
     try {
       const emp = empreendimentos.find((e) => e.id === selectedEmpId);
       const slug = emp?.nome.toLowerCase().replace(/\s+/g, "-") || "foto";
-      
+
       for (let i = 0; i < photoFiles.length; i++) {
         const url = await uploadImage(photoFiles[i], slug);
         await supabase.from("empreendimento_fotos").insert({
@@ -286,7 +290,7 @@ const AdminPanel = () => {
 
   const handleDeleteDepoimento = async (id: string) => {
     try {
-      const { error } = await supabase.from("depoimentos").delete().eq("id", id) as any;
+      const { error } = (await supabase.from("depoimentos").delete().eq("id", id)) as any;
       if (error) throw error;
       toast.success("Depoimento removido!");
       loadDepoimentos();
@@ -302,10 +306,10 @@ const AdminPanel = () => {
       for (const config of siteConfigs) {
         const newVal = configValues[config.chave];
         if (newVal !== config.valor) {
-          const { error } = await supabase
+          const { error } = (await supabase
             .from("site_config")
             .update({ valor: newVal, updated_at: new Date().toISOString() } as any)
-            .eq("id", config.id) as any;
+            .eq("id", config.id)) as any;
           if (error) throw error;
         }
       }
@@ -412,9 +416,7 @@ const AdminPanel = () => {
             onClick={(e) => e.stopPropagation()}
           >
             <div className="flex justify-between items-center mb-4">
-              <h3 className="font-bold text-primary text-lg">
-                {menuItems.find((m) => m.id === activeModal)?.label}
-              </h3>
+              <h3 className="font-bold text-primary text-lg">{menuItems.find((m) => m.id === activeModal)?.label}</h3>
               <button onClick={() => setActiveModal(null)}>
                 <X className="w-5 h-5" />
               </button>
@@ -454,7 +456,10 @@ const AdminPanel = () => {
                   className={`border-2 border-dashed rounded-lg p-6 text-center transition-colors ${
                     dragOver ? "border-accent bg-accent/10" : "border-border"
                   }`}
-                  onDragOver={(e) => { e.preventDefault(); setDragOver(true); }}
+                  onDragOver={(e) => {
+                    e.preventDefault();
+                    setDragOver(true);
+                  }}
                   onDragLeave={() => setDragOver(false)}
                   onDrop={(e) => {
                     e.preventDefault();
@@ -463,12 +468,8 @@ const AdminPanel = () => {
                   }}
                 >
                   <Upload className="w-8 h-8 mx-auto mb-2 text-muted-foreground" />
-                  <p className="text-sm text-muted-foreground mb-2">
-                    Arraste fotos aqui ou clique para selecionar
-                  </p>
-                  <p className="text-xs text-muted-foreground">
-                    Mínimo 6, máximo 10 fotos ({imageFiles.length}/10)
-                  </p>
+                  <p className="text-sm text-muted-foreground mb-2">Arraste fotos aqui ou clique para selecionar</p>
+                  <p className="text-xs text-muted-foreground">Mínimo 6, máximo 12 fotos ({imageFiles.length}/12)</p>
                   <input
                     type="file"
                     multiple
@@ -477,7 +478,10 @@ const AdminPanel = () => {
                     className="hidden"
                     id="add-photos"
                   />
-                  <label htmlFor="add-photos" className="btn-gold px-4 py-2 rounded-lg text-xs cursor-pointer inline-block mt-2">
+                  <label
+                    htmlFor="add-photos"
+                    className="btn-gold px-4 py-2 rounded-lg text-xs cursor-pointer inline-block mt-2"
+                  >
                     Selecionar Fotos
                   </label>
                 </div>
@@ -524,25 +528,21 @@ const AdminPanel = () => {
                 >
                   <option value="">Selecione um empreendimento</option>
                   {empreendimentos.map((emp) => (
-                    <option key={emp.id} value={emp.id}>{emp.nome}</option>
+                    <option key={emp.id} value={emp.id}>
+                      {emp.nome}
+                    </option>
                   ))}
                 </select>
 
                 {selectedEmpId && (
                   <>
-                    <p className="text-xs text-muted-foreground">
-                      Fotos atuais: {empFotos.length}/10 (mínimo 6)
-                    </p>
+                    <p className="text-xs text-muted-foreground">Fotos atuais: {empFotos.length}/10 (mínimo 6)</p>
 
                     {/* Fotos existentes */}
                     <div className="grid grid-cols-3 gap-2">
                       {empFotos.map((foto) => (
                         <div key={foto.id} className="relative group">
-                          <img
-                            src={foto.foto_url}
-                            alt="Foto"
-                            className="w-full h-20 object-cover rounded-lg"
-                          />
+                          <img src={foto.foto_url} alt="Foto" className="w-full h-20 object-cover rounded-lg" />
                           {empFotos.length > 6 && (
                             <button
                               onClick={() => handleDeleteFoto(foto)}
@@ -562,7 +562,10 @@ const AdminPanel = () => {
                           className={`border-2 border-dashed rounded-lg p-4 text-center transition-colors ${
                             dragOver ? "border-accent bg-accent/10" : "border-border"
                           }`}
-                          onDragOver={(e) => { e.preventDefault(); setDragOver(true); }}
+                          onDragOver={(e) => {
+                            e.preventDefault();
+                            setDragOver(true);
+                          }}
                           onDragLeave={() => setDragOver(false)}
                           onDrop={(e) => {
                             e.preventDefault();
@@ -579,7 +582,10 @@ const AdminPanel = () => {
                             className="hidden"
                             id="manage-photos"
                           />
-                          <label htmlFor="manage-photos" className="btn-gold px-4 py-2 rounded-lg text-xs cursor-pointer inline-block">
+                          <label
+                            htmlFor="manage-photos"
+                            className="btn-gold px-4 py-2 rounded-lg text-xs cursor-pointer inline-block"
+                          >
                             Selecionar
                           </label>
                         </div>
@@ -634,28 +640,20 @@ const AdminPanel = () => {
                       {config.chave.includes("texto") ? (
                         <textarea
                           value={configValues[config.chave] || ""}
-                          onChange={(e) =>
-                            setConfigValues((prev) => ({ ...prev, [config.chave]: e.target.value }))
-                          }
+                          onChange={(e) => setConfigValues((prev) => ({ ...prev, [config.chave]: e.target.value }))}
                           className="w-full border border-border p-3 rounded-lg bg-background h-24 text-sm"
                         />
                       ) : (
                         <input
                           value={configValues[config.chave] || ""}
-                          onChange={(e) =>
-                            setConfigValues((prev) => ({ ...prev, [config.chave]: e.target.value }))
-                          }
+                          onChange={(e) => setConfigValues((prev) => ({ ...prev, [config.chave]: e.target.value }))}
                           className="w-full border border-border p-3 rounded-lg bg-background text-sm"
                         />
                       )}
                     </div>
                   ))
                 )}
-                <button
-                  onClick={handleSaveConfigs}
-                  disabled={saving}
-                  className="btn-gold w-full py-3 rounded-lg"
-                >
+                <button onClick={handleSaveConfigs} disabled={saving} className="btn-gold w-full py-3 rounded-lg">
                   {saving ? "Salvando..." : "Salvar Textos"}
                 </button>
               </div>
@@ -674,20 +672,14 @@ const AdminPanel = () => {
                       </label>
                       <input
                         value={configValues[config.chave] || ""}
-                        onChange={(e) =>
-                          setConfigValues((prev) => ({ ...prev, [config.chave]: e.target.value }))
-                        }
+                        onChange={(e) => setConfigValues((prev) => ({ ...prev, [config.chave]: e.target.value }))}
                         className="w-full border border-border p-3 rounded-lg bg-background text-sm"
                         placeholder={config.chave === "whatsapp" ? "5511999999999" : "https://..."}
                       />
                     </div>
                   ))
                 )}
-                <button
-                  onClick={handleSaveConfigs}
-                  disabled={saving}
-                  className="btn-gold w-full py-3 rounded-lg"
-                >
+                <button onClick={handleSaveConfigs} disabled={saving} className="btn-gold w-full py-3 rounded-lg">
                   {saving ? "Salvando..." : "Salvar Links"}
                 </button>
               </div>
@@ -708,10 +700,7 @@ const AdminPanel = () => {
                   placeholder="Nome do autor (opcional)"
                   className="w-full border border-border p-3 rounded-lg bg-background text-sm"
                 />
-                <button
-                  onClick={handleAddDepoimento}
-                  className="btn-gold w-full py-3 rounded-lg"
-                >
+                <button onClick={handleAddDepoimento} className="btn-gold w-full py-3 rounded-lg">
                   Postar Depoimento
                 </button>
 
@@ -723,9 +712,7 @@ const AdminPanel = () => {
                       <div key={dep.id} className="bg-background p-3 rounded-lg flex justify-between items-start gap-2">
                         <div className="flex-1">
                           <p className="text-sm text-foreground">{dep.texto}</p>
-                          {dep.autor && (
-                            <p className="text-xs text-muted-foreground mt-1">— {dep.autor}</p>
-                          )}
+                          {dep.autor && <p className="text-xs text-muted-foreground mt-1">— {dep.autor}</p>}
                         </div>
                         <button
                           onClick={() => handleDeleteDepoimento(dep.id)}
