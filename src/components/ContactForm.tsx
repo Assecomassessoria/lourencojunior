@@ -13,6 +13,19 @@ const ContactForm = () => {
     horario: "",
   });
   const [sending, setSending] = useState(false);
+  const [empreendimentos, setEmpreendimentos] = useState<{ id: string; nome: string }[]>([]);
+
+  useEffect(() => {
+    const fetch = async () => {
+      const { data } = await supabase
+        .from("empreendimentos")
+        .select("id, nome")
+        .eq("ativo", true)
+        .order("ordem", { ascending: true });
+      if (data) setEmpreendimentos(data);
+    };
+    fetch();
+  }, []);
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>) => {
     setForm({ ...form, [e.target.name]: e.target.value });
