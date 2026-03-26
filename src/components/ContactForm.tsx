@@ -106,8 +106,9 @@ const ContactForm = () => {
               className="p-3 border border-border rounded-lg bg-background text-foreground focus:ring-2 focus:ring-accent outline-none font-body"
             >
               <option value="">Escolha o Empreendimento</option>
-              <option value="Residencial Grand Horizon">Residencial Grand Horizon</option>
-              <option value="Outros Lançamentos">Outros Lançamentos</option>
+              {empreendimentos.map((emp) => (
+                <option key={emp.id} value={emp.nome}>{emp.nome}</option>
+              ))}
             </select>
 
             <select
