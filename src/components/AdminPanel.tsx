@@ -156,8 +156,8 @@ const AdminPanel = () => {
       toast.error("Nome é obrigatório");
       return;
     }
-    if (imageFiles.length < 6) {
-      toast.error("Adicione pelo menos 6 fotos (mínimo 6, máximo 12)");
+    if (imageFiles.length < 1) {
+      toast.error("Adicione pelo menos 1 foto");
       return;
     }
     if (imageFiles.length > 12) {
