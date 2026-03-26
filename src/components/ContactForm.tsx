@@ -1,7 +1,7 @@
 import { useState, useEffect } from "react";
 import { motion } from "framer-motion";
 import { supabase } from "@/integrations/supabase/client";
-import { Send } from "lucide-react";
+import { Send, Mail, MessageCircle } from "lucide-react";
 import { toast } from "sonner";
 
 const ContactForm = () => {
@@ -31,17 +31,8 @@ const ContactForm = () => {
     setForm({ ...form, [e.target.name]: e.target.value });
   };
 
-  const handleSubmit = (e: React.FormEvent) => {
-    e.preventDefault();
-
-    if (!form.nome || !form.whatsapp || !form.email) {
-      toast.error("Preencha todos os campos obrigatórios.");
-      return;
-    }
-
-    setSending(true);
-
-    const message = encodeURIComponent(
+  const buildMessage = () => {
+    return (
       `Olá! Meu nome é ${form.nome}.\n` +
       `WhatsApp: ${form.whatsapp}\n` +
       `E-mail: ${form.email}\n` +
@@ -49,12 +40,37 @@ const ContactForm = () => {
       `Melhor horário: ${form.horario || "Não informado"}\n\n` +
       `Gostaria de receber mais informações!`
     );
+  };
 
+  const validateForm = () => {
+    if (!form.nome || !form.whatsapp || !form.email) {
+      toast.error("Preencha todos os campos obrigatórios.");
+      return false;
+    }
+    return true;
+  };
+
+  const handleWhatsApp = () => {
+    if (!validateForm()) return;
+    const message = encodeURIComponent(buildMessage());
     const whatsappUrl = `https://wa.me/5511946770625?text=${message}`;
     window.open(whatsappUrl, "_blank");
-
     toast.success("Redirecionando para o WhatsApp...");
-    setSending(false);
+  };
+
+  const handleEmail = () => {
+    if (!validateForm()) return;
+    const subject = encodeURIComponent("Quero Conhecer - Contato pelo Site");
+    const body = encodeURIComponent(buildMessage());
+    const mailtoUrl = `mailto:lourencojunior.corretor@gmail.com?subject=${subject}&body=${body}`;
+    window.open(mailtoUrl, "_blank");
+    toast.success("Abrindo seu e-mail...");
+  };
+
+  const handleSubmit = (e: React.FormEvent) => {
+    e.preventDefault();
+    handleWhatsApp();
+    handleEmail();
   };
 
   return (
@@ -123,14 +139,24 @@ const ContactForm = () => {
               <option value="Noite">Noite</option>
             </select>
 
-            <button
-              type="submit"
-              disabled={sending}
-              className="md:col-span-2 btn-gold py-4 rounded-lg uppercase tracking-wider flex items-center justify-center gap-2 text-base"
-            >
-              <Send className="w-5 h-5" />
-              QUERO CONHECER
-            </button>
+            <div className="md:col-span-2 grid grid-cols-1 sm:grid-cols-2 gap-3">
+              <button
+                type="button"
+                onClick={handleWhatsApp}
+                className="btn-gold py-4 rounded-lg uppercase tracking-wider flex items-center justify-center gap-2 text-base bg-green-600 hover:bg-green-700 text-white font-bold transition-colors"
+              >
+                <MessageCircle className="w-5 h-5" />
+                WHATSAPP
+              </button>
+              <button
+                type="button"
+                onClick={handleEmail}
+                className="btn-gold py-4 rounded-lg uppercase tracking-wider flex items-center justify-center gap-2 text-base"
+              >
+                <Mail className="w-5 h-5" />
+                E-MAIL
+              </button>
+            </div>
           </form>
         </motion.div>
       </div>
