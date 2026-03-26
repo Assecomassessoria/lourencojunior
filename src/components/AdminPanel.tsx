@@ -536,7 +536,7 @@ const AdminPanel = () => {
 
                 {selectedEmpId && (
                   <>
-                    <p className="text-xs text-muted-foreground">Fotos atuais: {empFotos.length}/10 (mínimo 6)</p>
+                    <p className="text-xs text-muted-foreground">Fotos atuais: {empFotos.length}/12</p>
 
                     {/* Fotos existentes */}
                     <div className="grid grid-cols-3 gap-2">
