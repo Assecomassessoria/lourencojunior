@@ -1,7 +1,7 @@
 import { useState, useEffect } from "react";
 import { motion } from "framer-motion";
 import { supabase } from "@/integrations/supabase/client";
-import { Send } from "lucide-react";
+import { Send, Mail, MessageCircle } from "lucide-react";
 import { toast } from "sonner";
 
 const ContactForm = () => {
