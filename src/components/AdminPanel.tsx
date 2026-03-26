@@ -156,8 +156,8 @@ const AdminPanel = () => {
       toast.error("Nome é obrigatório");
       return;
     }
-    if (imageFiles.length < 6) {
-      toast.error("Adicione pelo menos 6 fotos (mínimo 6, máximo 12)");
+    if (imageFiles.length < 1) {
+      toast.error("Adicione pelo menos 1 foto");
       return;
     }
     if (imageFiles.length > 12) {
@@ -469,7 +469,7 @@ const AdminPanel = () => {
                 >
                   <Upload className="w-8 h-8 mx-auto mb-2 text-muted-foreground" />
                   <p className="text-sm text-muted-foreground mb-2">Arraste fotos aqui ou clique para selecionar</p>
-                  <p className="text-xs text-muted-foreground">Mínimo 6, máximo 12 fotos ({imageFiles.length}/12)</p>
+                  <p className="text-xs text-muted-foreground">Máximo 12 fotos ({imageFiles.length}/12)</p>
                   <input
                     type="file"
                     multiple
@@ -536,14 +536,14 @@ const AdminPanel = () => {
 
                 {selectedEmpId && (
                   <>
-                    <p className="text-xs text-muted-foreground">Fotos atuais: {empFotos.length}/10 (mínimo 6)</p>
+                    <p className="text-xs text-muted-foreground">Fotos atuais: {empFotos.length}/12</p>
 
                     {/* Fotos existentes */}
                     <div className="grid grid-cols-3 gap-2">
                       {empFotos.map((foto) => (
                         <div key={foto.id} className="relative group">
                           <img src={foto.foto_url} alt="Foto" className="w-full h-20 object-cover rounded-lg" />
-                          {empFotos.length > 6 && (
+                          {empFotos.length > 1 && (
                             <button
                               onClick={() => handleDeleteFoto(foto)}
                               className="absolute -top-1 -right-1 bg-destructive text-destructive-foreground rounded-full w-5 h-5 flex items-center justify-center text-xs opacity-0 group-hover:opacity-100 transition-opacity"
@@ -556,7 +556,7 @@ const AdminPanel = () => {
                     </div>
 
                     {/* Adicionar mais fotos */}
-                    {empFotos.length < 10 && (
+                    {empFotos.length < 12 && (
                       <>
                         <div
                           className={`border-2 border-dashed rounded-lg p-4 text-center transition-colors ${
