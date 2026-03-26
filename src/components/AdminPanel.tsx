@@ -543,7 +543,7 @@ const AdminPanel = () => {
                       {empFotos.map((foto) => (
                         <div key={foto.id} className="relative group">
                           <img src={foto.foto_url} alt="Foto" className="w-full h-20 object-cover rounded-lg" />
-                          {empFotos.length > 6 && (
+                          {empFotos.length > 1 && (
                             <button
                               onClick={() => handleDeleteFoto(foto)}
                               className="absolute -top-1 -right-1 bg-destructive text-destructive-foreground rounded-full w-5 h-5 flex items-center justify-center text-xs opacity-0 group-hover:opacity-100 transition-opacity"
