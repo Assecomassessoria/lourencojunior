@@ -556,7 +556,7 @@ const AdminPanel = () => {
                     </div>
 
                     {/* Adicionar mais fotos */}
-                    {empFotos.length < 10 && (
+                    {empFotos.length < 12 && (
                       <>
                         <div
                           className={`border-2 border-dashed rounded-lg p-4 text-center transition-colors ${
