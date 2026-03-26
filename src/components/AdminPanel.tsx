@@ -469,7 +469,7 @@ const AdminPanel = () => {
                 >
                   <Upload className="w-8 h-8 mx-auto mb-2 text-muted-foreground" />
                   <p className="text-sm text-muted-foreground mb-2">Arraste fotos aqui ou clique para selecionar</p>
-                  <p className="text-xs text-muted-foreground">Mínimo 6, máximo 12 fotos ({imageFiles.length}/12)</p>
+                  <p className="text-xs text-muted-foreground">Máximo 12 fotos ({imageFiles.length}/12)</p>
                   <input
                     type="file"
                     multiple
