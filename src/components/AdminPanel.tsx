@@ -132,8 +132,63 @@ const AdminPanel = () => {
     }
   }, []);
 
+  const loadEditEmp = useCallback((empId: string) => {
+    const emp = empreendimentos.find((e) => e.id === empId);
+    if (emp) {
+      setEditNome(emp.nome);
+      setEditDescricao(emp.descricao || "");
+      setEditDetalhe(emp.detalhe || "");
+      setEditPreco(emp.preco || "Sob Consulta");
+      setEditAtivo(emp.ativo ?? true);
+    }
+  }, [empreendimentos]);
+
+  const handleUpdateEmpreendimento = async () => {
+    if (!editEmpId) {
+      toast.error("Selecione um empreendimento");
+      return;
+    }
+    setSaving(true);
+    try {
+      const { error } = await supabase
+        .from("empreendimentos")
+        .update({
+          nome: editNome,
+          descricao: editDescricao || null,
+          detalhe: editDetalhe || null,
+          preco: editPreco || "Sob Consulta",
+          ativo: editAtivo,
+        })
+        .eq("id", editEmpId);
+      if (error) throw error;
+      toast.success("Empreendimento atualizado!");
+      await loadEmpreendimentos();
+      setActiveModal(null);
+    } catch (err: any) {
+      toast.error("Erro: " + err.message);
+    } finally {
+      setSaving(false);
+    }
+  };
+
+  const handleDeleteEmpreendimento = async () => {
+    if (!editEmpId) return;
+    if (!confirm("Tem certeza que deseja excluir este empreendimento?")) return;
+    try {
+      await supabase.from("empreendimento_fotos").delete().eq("empreendimento_id", editEmpId);
+      const { error } = await supabase.from("empreendimentos").delete().eq("id", editEmpId);
+      if (error) throw error;
+      toast.success("Empreendimento excluído!");
+      setEditEmpId("");
+      await loadEmpreendimentos();
+      setActiveModal(null);
+    } catch (err: any) {
+      toast.error("Erro: " + err.message);
+    }
+  };
+
   const openModal = async (id: string) => {
-    if (id === "fotos" || id === "add") {
+    if (id === "fotos" || id === "add" || id === "editar") {
       await loadEmpreendimentos();
     }
     if (id === "depo") {
@@ -144,6 +199,9 @@ const AdminPanel = () => {
     }
     if (id === "links") {
       await loadSiteConfigs("link");
+    }
+    if (id === "editar") {
+      setEditEmpId("");
     }
     setActiveModal(id);
   };
