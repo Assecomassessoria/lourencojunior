@@ -1,5 +1,5 @@
 import { useState, useCallback, useEffect } from "react";
-import { Settings, X, Plus, Image, FileText, Link, MessageSquare, Trash2, Upload, ChevronDown } from "lucide-react";
+import { Settings, X, Plus, Image, FileText, Link, MessageSquare, Trash2, Upload, ChevronDown, Edit } from "lucide-react";
 import { toast } from "sonner";
 import { supabase } from "@/integrations/supabase/client";
 
