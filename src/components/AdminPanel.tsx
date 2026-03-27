@@ -417,6 +417,7 @@ const AdminPanel = () => {
 
   const menuItems = [
     { id: "add", label: "Novo Empreendimento", icon: Plus },
+    { id: "editar", label: "Editar Empreendimento", icon: Edit },
     { id: "fotos", label: "Gerenciar Fotos", icon: Image },
     { id: "textos", label: "Alterar Textos", icon: FileText },
     { id: "links", label: "Atualizar Links", icon: Link },
