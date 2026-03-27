@@ -19,7 +19,7 @@ const Header = () => {
       }`}
     >
       <div className="container mx-auto px-4 py-4 flex justify-between items-center">
-        <a href="#inicio" className="flex items-center gap-3">
+        <a href="#inicio" onClick={(e) => { e.preventDefault(); window.location.reload(); }} className="flex items-center gap-3 cursor-pointer">
           <img src={logoImg} alt="Logo Lourenço Junior" className="h-10" />
           <span className="text-xl font-display font-bold text-primary tracking-tighter">
             LOURENÇO <span className="text-accent">JUNIOR</span>
