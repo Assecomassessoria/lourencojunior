@@ -581,6 +581,78 @@ const AdminPanel = () => {
               </form>
             )}
 
+            {/* ===== EDITAR EMPREENDIMENTO ===== */}
+            {activeModal === "editar" && (
+              <div className="space-y-4">
+                <select
+                  value={editEmpId}
+                  onChange={(e) => {
+                    setEditEmpId(e.target.value);
+                    if (e.target.value) loadEditEmp(e.target.value);
+                  }}
+                  className="w-full border border-border p-3 rounded-lg bg-background text-sm"
+                >
+                  <option value="">Selecione um empreendimento</option>
+                  {empreendimentos.map((emp) => (
+                    <option key={emp.id} value={emp.id}>
+                      {emp.nome}
+                    </option>
+                  ))}
+                </select>
+
+                {editEmpId && (
+                  <>
+                    <input
+                      placeholder="Nome *"
+                      value={editNome}
+                      onChange={(e) => setEditNome(e.target.value)}
+                      className="w-full border border-border p-3 rounded-lg bg-background text-sm"
+                    />
+                    <textarea
+                      placeholder="Descrição (ex: Apartamentos Com 38m² | 45m²)"
+                      value={editDescricao}
+                      onChange={(e) => setEditDescricao(e.target.value)}
+                      className="w-full border border-border p-3 rounded-lg bg-background h-20 text-sm"
+                    />
+                    <textarea
+                      placeholder="Detalhes (ex: 2 e 3 dormitórios com suíte)"
+                      value={editDetalhe}
+                      onChange={(e) => setEditDetalhe(e.target.value)}
+                      className="w-full border border-border p-3 rounded-lg bg-background h-16 text-sm"
+                    />
+                    <input
+                      placeholder="Preço (ex: Sob Consulta)"
+                      value={editPreco}
+                      onChange={(e) => setEditPreco(e.target.value)}
+                      className="w-full border border-border p-3 rounded-lg bg-background text-sm"
+                    />
+                    <label className="flex items-center gap-2 text-sm text-foreground">
+                      <input
+                        type="checkbox"
+                        checked={editAtivo}
+                        onChange={(e) => setEditAtivo(e.target.checked)}
+                        className="rounded"
+                      />
+                      Ativo (visível no site)
+                    </label>
+                    <button
+                      onClick={handleUpdateEmpreendimento}
+                      disabled={saving}
+                      className="btn-gold w-full py-3 rounded-lg"
+                    >
+                      {saving ? "Salvando..." : "Salvar Alterações"}
+                    </button>
+                    <button
+                      onClick={handleDeleteEmpreendimento}
+                      className="w-full py-3 rounded-lg border border-destructive text-destructive hover:bg-destructive hover:text-destructive-foreground transition-colors text-sm"
+                    >
+                      Excluir Empreendimento
+                    </button>
+                  </>
+                )}
+              </div>
+            )}
+
             {/* ===== GERENCIAR FOTOS ===== */}
             {activeModal === "fotos" && (
               <div className="space-y-4">
