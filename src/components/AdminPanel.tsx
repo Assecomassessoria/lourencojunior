@@ -58,6 +58,14 @@ const AdminPanel = () => {
   const [photoFiles, setPhotoFiles] = useState<File[]>([]);
   const [dragOver, setDragOver] = useState(false);
 
+  // Editar Empreendimento
+  const [editEmpId, setEditEmpId] = useState<string>("");
+  const [editNome, setEditNome] = useState("");
+  const [editDescricao, setEditDescricao] = useState("");
+  const [editDetalhe, setEditDetalhe] = useState("");
+  const [editPreco, setEditPreco] = useState("");
+  const [editAtivo, setEditAtivo] = useState(true);
+
   // Depoimentos
   const [depoimentos, setDepoimentos] = useState<Depoimento[]>([]);
   const [novoDepoimento, setNovoDepoimento] = useState("");
