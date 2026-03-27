@@ -1,5 +1,5 @@
 import { useState, useCallback, useEffect } from "react";
-import { Settings, X, Plus, Image, FileText, Link, MessageSquare, Trash2, Upload, ChevronDown } from "lucide-react";
+import { Settings, X, Plus, Image, FileText, Link, MessageSquare, Trash2, Upload, ChevronDown, Edit } from "lucide-react";
 import { toast } from "sonner";
 import { supabase } from "@/integrations/supabase/client";
 
@@ -57,6 +57,14 @@ const AdminPanel = () => {
   const [empFotos, setEmpFotos] = useState<Foto[]>([]);
   const [photoFiles, setPhotoFiles] = useState<File[]>([]);
   const [dragOver, setDragOver] = useState(false);
+
+  // Editar Empreendimento
+  const [editEmpId, setEditEmpId] = useState<string>("");
+  const [editNome, setEditNome] = useState("");
+  const [editDescricao, setEditDescricao] = useState("");
+  const [editDetalhe, setEditDetalhe] = useState("");
+  const [editPreco, setEditPreco] = useState("");
+  const [editAtivo, setEditAtivo] = useState(true);
 
   // Depoimentos
   const [depoimentos, setDepoimentos] = useState<Depoimento[]>([]);
@@ -124,8 +132,63 @@ const AdminPanel = () => {
     }
   }, []);
 
+  const loadEditEmp = useCallback((empId: string) => {
+    const emp = empreendimentos.find((e) => e.id === empId);
+    if (emp) {
+      setEditNome(emp.nome);
+      setEditDescricao(emp.descricao || "");
+      setEditDetalhe(emp.detalhe || "");
+      setEditPreco(emp.preco || "Sob Consulta");
+      setEditAtivo(emp.ativo ?? true);
+    }
+  }, [empreendimentos]);
+
+  const handleUpdateEmpreendimento = async () => {
+    if (!editEmpId) {
+      toast.error("Selecione um empreendimento");
+      return;
+    }
+    setSaving(true);
+    try {
+      const { error } = await supabase
+        .from("empreendimentos")
+        .update({
+          nome: editNome,
+          descricao: editDescricao || null,
+          detalhe: editDetalhe || null,
+          preco: editPreco || "Sob Consulta",
+          ativo: editAtivo,
+        })
+        .eq("id", editEmpId);
+      if (error) throw error;
+      toast.success("Empreendimento atualizado!");
+      await loadEmpreendimentos();
+      setActiveModal(null);
+    } catch (err: any) {
+      toast.error("Erro: " + err.message);
+    } finally {
+      setSaving(false);
+    }
+  };
+
+  const handleDeleteEmpreendimento = async () => {
+    if (!editEmpId) return;
+    if (!confirm("Tem certeza que deseja excluir este empreendimento?")) return;
+    try {
+      await supabase.from("empreendimento_fotos").delete().eq("empreendimento_id", editEmpId);
+      const { error } = await supabase.from("empreendimentos").delete().eq("id", editEmpId);
+      if (error) throw error;
+      toast.success("Empreendimento excluído!");
+      setEditEmpId("");
+      await loadEmpreendimentos();
+      setActiveModal(null);
+    } catch (err: any) {
+      toast.error("Erro: " + err.message);
+    }
+  };
+
   const openModal = async (id: string) => {
-    if (id === "fotos" || id === "add") {
+    if (id === "fotos" || id === "add" || id === "editar") {
       await loadEmpreendimentos();
     }
     if (id === "depo") {
@@ -136,6 +199,9 @@ const AdminPanel = () => {
     }
     if (id === "links") {
       await loadSiteConfigs("link");
+    }
+    if (id === "editar") {
+      setEditEmpId("");
     }
     setActiveModal(id);
   };
@@ -351,6 +417,7 @@ const AdminPanel = () => {
 
   const menuItems = [
     { id: "add", label: "Novo Empreendimento", icon: Plus },
+    { id: "editar", label: "Editar Empreendimento", icon: Edit },
     { id: "fotos", label: "Gerenciar Fotos", icon: Image },
     { id: "textos", label: "Alterar Textos", icon: FileText },
     { id: "links", label: "Atualizar Links", icon: Link },
@@ -512,6 +579,78 @@ const AdminPanel = () => {
                   {saving ? "Salvando..." : "Salvar Empreendimento"}
                 </button>
               </form>
+            )}
+
+            {/* ===== EDITAR EMPREENDIMENTO ===== */}
+            {activeModal === "editar" && (
+              <div className="space-y-4">
+                <select
+                  value={editEmpId}
+                  onChange={(e) => {
+                    setEditEmpId(e.target.value);
+                    if (e.target.value) loadEditEmp(e.target.value);
+                  }}
+                  className="w-full border border-border p-3 rounded-lg bg-background text-sm"
+                >
+                  <option value="">Selecione um empreendimento</option>
+                  {empreendimentos.map((emp) => (
+                    <option key={emp.id} value={emp.id}>
+                      {emp.nome}
+                    </option>
+                  ))}
+                </select>
+
+                {editEmpId && (
+                  <>
+                    <input
+                      placeholder="Nome *"
+                      value={editNome}
+                      onChange={(e) => setEditNome(e.target.value)}
+                      className="w-full border border-border p-3 rounded-lg bg-background text-sm"
+                    />
+                    <textarea
+                      placeholder="Descrição (ex: Apartamentos Com 38m² | 45m²)"
+                      value={editDescricao}
+                      onChange={(e) => setEditDescricao(e.target.value)}
+                      className="w-full border border-border p-3 rounded-lg bg-background h-20 text-sm"
+                    />
+                    <textarea
+                      placeholder="Detalhes (ex: 2 e 3 dormitórios com suíte)"
+                      value={editDetalhe}
+                      onChange={(e) => setEditDetalhe(e.target.value)}
+                      className="w-full border border-border p-3 rounded-lg bg-background h-16 text-sm"
+                    />
+                    <input
+                      placeholder="Preço (ex: Sob Consulta)"
+                      value={editPreco}
+                      onChange={(e) => setEditPreco(e.target.value)}
+                      className="w-full border border-border p-3 rounded-lg bg-background text-sm"
+                    />
+                    <label className="flex items-center gap-2 text-sm text-foreground">
+                      <input
+                        type="checkbox"
+                        checked={editAtivo}
+                        onChange={(e) => setEditAtivo(e.target.checked)}
+                        className="rounded"
+                      />
+                      Ativo (visível no site)
+                    </label>
+                    <button
+                      onClick={handleUpdateEmpreendimento}
+                      disabled={saving}
+                      className="btn-gold w-full py-3 rounded-lg"
+                    >
+                      {saving ? "Salvando..." : "Salvar Alterações"}
+                    </button>
+                    <button
+                      onClick={handleDeleteEmpreendimento}
+                      className="w-full py-3 rounded-lg border border-destructive text-destructive hover:bg-destructive hover:text-destructive-foreground transition-colors text-sm"
+                    >
+                      Excluir Empreendimento
+                    </button>
+                  </>
+                )}
+              </div>
             )}
 
             {/* ===== GERENCIAR FOTOS ===== */}
