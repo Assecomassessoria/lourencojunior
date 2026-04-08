@@ -62,7 +62,7 @@ const ContactForm = () => {
     if (!validateForm()) return;
     const subject = encodeURIComponent("Quero Conhecer - Contato pelo Site");
     const body = encodeURIComponent(buildMessage());
-    const mailtoUrl = `mailto:lourencojunior.corretor@gmail.com?subject=${subject}&body=${body}`;
+    const mailtoUrl = `mailto:lourencojunior.corretor@creci.org.br?subject=${subject}&body=${body}`;
     window.open(mailtoUrl, "_blank");
     toast.success("Abrindo seu e-mail...");
   };
@@ -123,7 +123,9 @@ const ContactForm = () => {
             >
               <option value="">Escolha o Empreendimento</option>
               {empreendimentos.map((emp) => (
-                <option key={emp.id} value={emp.nome}>{emp.nome}</option>
+                <option key={emp.id} value={emp.nome}>
+                  {emp.nome}
+                </option>
               ))}
             </select>
 
