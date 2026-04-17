@@ -229,7 +229,13 @@ const LuizaAdminModal = ({ open, onClose }: { open: boolean; onClose: () => void
                   onClick={() => setTab("kb")}
                   className={`flex-1 py-3 font-medium text-sm ${tab === "kb" ? "text-accent border-b-2 border-accent" : "text-muted-foreground"}`}
                 >
-                  Treinamento da IA
+                  Instruções
+                </button>
+                <button
+                  onClick={() => setTab("docs")}
+                  className={`flex-1 py-3 font-medium text-sm ${tab === "docs" ? "text-accent border-b-2 border-accent" : "text-muted-foreground"}`}
+                >
+                  PDFs ({docs.length})
                 </button>
                 <button
                   onClick={() => setTab("leads")}
@@ -240,7 +246,7 @@ const LuizaAdminModal = ({ open, onClose }: { open: boolean; onClose: () => void
               </div>
 
               <div className="flex-1 overflow-y-auto p-6">
-                {tab === "kb" ? (
+                {tab === "kb" && (
                   <div className="space-y-4">
                     <label className="block">
                       <span className="text-sm font-medium text-foreground">
@@ -265,7 +271,80 @@ const LuizaAdminModal = ({ open, onClose }: { open: boolean; onClose: () => void
                       <Save size={16} /> {saving ? "Salvando..." : "Salvar"}
                     </button>
                   </div>
-                ) : (
+                )}
+
+                {tab === "docs" && (
+                  <div className="space-y-3">
+                    <div>
+                      <p className="text-sm font-medium text-foreground mb-1">
+                        Treine a Luiza com PDFs do simulador
+                      </p>
+                      <p className="text-xs text-muted-foreground mb-3">
+                        O texto dos PDFs ativos é enviado à IA como base de conhecimento oficial.
+                      </p>
+                      <input
+                        ref={fileRef}
+                        type="file"
+                        accept="application/pdf"
+                        className="hidden"
+                        onChange={(e) => e.target.files?.[0] && uploadPdf(e.target.files[0])}
+                      />
+                      <button
+                        onClick={() => fileRef.current?.click()}
+                        disabled={uploading}
+                        className="btn-gold py-2 px-4 rounded-lg flex items-center gap-2 disabled:opacity-50"
+                      >
+                        {uploading ? <Loader2 size={16} className="animate-spin" /> : <Upload size={16} />}
+                        {uploading ? "Enviando..." : "Enviar PDF"}
+                      </button>
+                    </div>
+                    {docs.length === 0 ? (
+                      <p className="text-center text-muted-foreground py-6 text-sm">
+                        Nenhum PDF enviado ainda.
+                      </p>
+                    ) : (
+                      docs.map((d) => (
+                        <div
+                          key={d.id}
+                          className="border border-border rounded-lg p-3 flex items-center gap-3 bg-background"
+                        >
+                          <FileText size={20} className="text-accent shrink-0" />
+                          <div className="flex-1 min-w-0">
+                            <a
+                              href={d.arquivo_url}
+                              target="_blank"
+                              rel="noreferrer"
+                              className="font-medium text-sm text-foreground truncate block hover:text-accent"
+                            >
+                              {d.nome}
+                            </a>
+                            <p className="text-xs text-muted-foreground">
+                              {d.paginas ? `${d.paginas} pág` : "—"} ·{" "}
+                              {new Date(d.created_at).toLocaleDateString("pt-BR")}
+                            </p>
+                          </div>
+                          <label className="flex items-center gap-1 text-xs cursor-pointer">
+                            <input
+                              type="checkbox"
+                              checked={!!d.ativo}
+                              onChange={() => toggleDoc(d)}
+                            />
+                            Ativo
+                          </label>
+                          <button
+                            onClick={() => deleteDoc(d)}
+                            className="text-destructive hover:opacity-70 p-2"
+                            title="Excluir"
+                          >
+                            <Trash2 size={16} />
+                          </button>
+                        </div>
+                      ))
+                    )}
+                  </div>
+                )}
+
+                {tab === "leads" && (
                   <div className="space-y-2">
                     {leads.length === 0 ? (
                       <p className="text-center text-muted-foreground py-8 text-sm">
