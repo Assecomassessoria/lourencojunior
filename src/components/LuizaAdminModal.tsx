@@ -62,8 +62,17 @@ const LuizaAdminModal = ({ open, onClose }: { open: boolean; onClose: () => void
         .select("*")
         .order("created_at", { ascending: false });
       setLeads((ld as Lead[]) ?? []);
+      await loadDocs();
     })();
   }, [authed]);
+
+  const loadDocs = async () => {
+    const { data } = await supabase
+      .from("luiza_documents")
+      .select("*")
+      .order("created_at", { ascending: false });
+    setDocs((data as Doc[]) ?? []);
+  };
 
   const handleAuth = (e: React.FormEvent) => {
     e.preventDefault();
