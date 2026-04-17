@@ -109,6 +109,39 @@ export type Database = {
         }
         Relationships: []
       }
+      luiza_documents: {
+        Row: {
+          arquivo_path: string
+          arquivo_url: string
+          ativo: boolean | null
+          conteudo: string
+          created_at: string
+          id: string
+          nome: string
+          paginas: number | null
+        }
+        Insert: {
+          arquivo_path: string
+          arquivo_url: string
+          ativo?: boolean | null
+          conteudo?: string
+          created_at?: string
+          id?: string
+          nome: string
+          paginas?: number | null
+        }
+        Update: {
+          arquivo_path?: string
+          arquivo_url?: string
+          ativo?: boolean | null
+          conteudo?: string
+          created_at?: string
+          id?: string
+          nome?: string
+          paginas?: number | null
+        }
+        Relationships: []
+      }
       luiza_kb: {
         Row: {
           custom_instructions: string
