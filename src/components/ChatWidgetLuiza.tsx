@@ -82,11 +82,30 @@ const ChatWidgetLuiza = () => {
     setSubmitting(true);
     try {
       // Save lead to DB
+      const leadId = crypto.randomUUID();
       await supabase.from("luiza_leads").insert({
+        id: leadId,
         nome: userData.name,
         email: userData.email,
         whatsapp: userData.whatsapp,
       });
+
+      // Send email notification to consultant (fire-and-forget)
+      supabase.functions
+        .invoke("send-transactional-email", {
+          body: {
+            templateName: "luiza-new-lead",
+            recipientEmail: "lourenco.consultorimob@gmail.com",
+            idempotencyKey: `luiza-lead-${leadId}`,
+            templateData: {
+              nome: userData.name,
+              email: userData.email,
+              whatsapp: userData.whatsapp,
+              capturedAt: new Date().toLocaleString("pt-BR"),
+            },
+          },
+        })
+        .catch((e) => console.error("email notify error:", e));
 
       // Open WhatsApp with lead info
       const message = `Novo Lead - Luiza Elite IA 🚀\n\nNome: ${userData.name}\nE-mail: ${userData.email}\nWhatsApp: ${userData.whatsapp}\n\nInteressado em iniciar a simulação/consultoria agora.`;
