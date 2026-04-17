@@ -115,6 +115,64 @@ const LuizaAdminModal = ({ open, onClose }: { open: boolean; onClose: () => void
     }
   };
 
+  const uploadPdf = async (file: File) => {
+    if (file.type !== "application/pdf") {
+      toast.error("Envie um arquivo PDF");
+      return;
+    }
+    if (file.size > 20 * 1024 * 1024) {
+      toast.error("PDF muito grande (máx 20MB)");
+      return;
+    }
+    setUploading(true);
+    try {
+      const path = `${Date.now()}-${file.name.replace(/[^a-zA-Z0-9._-]/g, "_")}`;
+      const { error: upErr } = await supabase.storage.from("luiza-docs").upload(path, file);
+      if (upErr) throw upErr;
+      const { data: pub } = supabase.storage.from("luiza-docs").getPublicUrl(path);
+      const { data: doc, error: insErr } = await supabase
+        .from("luiza_documents")
+        .insert({ nome: file.name, arquivo_url: pub.publicUrl, arquivo_path: path })
+        .select()
+        .single();
+      if (insErr) throw insErr;
+      toast.info("Extraindo texto do PDF...");
+      const { error: fnErr } = await supabase.functions.invoke("extract-pdf", {
+        body: { documentId: doc.id },
+      });
+      if (fnErr) toast.error("Upload ok, mas falha ao extrair texto");
+      else toast.success("PDF adicionado e processado!");
+      await loadDocs();
+    } catch (e: any) {
+      toast.error(e?.message ?? "Erro no upload");
+    } finally {
+      setUploading(false);
+      if (fileRef.current) fileRef.current.value = "";
+    }
+  };
+
+  const deleteDoc = async (d: Doc) => {
+    if (!confirm(`Excluir "${d.nome}"?`)) return;
+    await supabase.storage.from("luiza-docs").remove([d.arquivo_path]);
+    const { error } = await supabase.from("luiza_documents").delete().eq("id", d.id);
+    if (error) toast.error("Erro ao excluir");
+    else {
+      setDocs((prev) => prev.filter((x) => x.id !== d.id));
+      toast.success("Documento removido");
+    }
+  };
+
+  const toggleDoc = async (d: Doc) => {
+    const { error } = await supabase
+      .from("luiza_documents")
+      .update({ ativo: !d.ativo })
+      .eq("id", d.id);
+    if (error) toast.error("Erro ao atualizar");
+    else {
+      setDocs((prev) => prev.map((x) => (x.id === d.id ? { ...x, ativo: !d.ativo } : x)));
+    }
+  };
+
   if (!open) return null;
 
   return (
