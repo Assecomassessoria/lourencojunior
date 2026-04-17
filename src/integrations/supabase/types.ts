@@ -109,6 +109,48 @@ export type Database = {
         }
         Relationships: []
       }
+      luiza_kb: {
+        Row: {
+          custom_instructions: string
+          id: string
+          updated_at: string
+        }
+        Insert: {
+          custom_instructions?: string
+          id?: string
+          updated_at?: string
+        }
+        Update: {
+          custom_instructions?: string
+          id?: string
+          updated_at?: string
+        }
+        Relationships: []
+      }
+      luiza_leads: {
+        Row: {
+          created_at: string
+          email: string
+          id: string
+          nome: string
+          whatsapp: string
+        }
+        Insert: {
+          created_at?: string
+          email: string
+          id?: string
+          nome: string
+          whatsapp: string
+        }
+        Update: {
+          created_at?: string
+          email?: string
+          id?: string
+          nome?: string
+          whatsapp?: string
+        }
+        Relationships: []
+      }
       site_config: {
         Row: {
           chave: string
