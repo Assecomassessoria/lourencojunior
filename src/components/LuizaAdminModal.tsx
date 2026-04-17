@@ -14,15 +14,28 @@ type Lead = {
   created_at: string;
 };
 
+type Doc = {
+  id: string;
+  nome: string;
+  arquivo_url: string;
+  arquivo_path: string;
+  paginas: number | null;
+  ativo: boolean | null;
+  created_at: string;
+};
+
 const LuizaAdminModal = ({ open, onClose }: { open: boolean; onClose: () => void }) => {
   const [authed, setAuthed] = useState(false);
   const [pwd, setPwd] = useState("");
   const [showPwd, setShowPwd] = useState(false);
-  const [tab, setTab] = useState<"kb" | "leads">("kb");
+  const [tab, setTab] = useState<"kb" | "docs" | "leads">("kb");
   const [instructions, setInstructions] = useState("");
   const [kbId, setKbId] = useState<string | null>(null);
   const [leads, setLeads] = useState<Lead[]>([]);
+  const [docs, setDocs] = useState<Doc[]>([]);
+  const [uploading, setUploading] = useState(false);
   const [saving, setSaving] = useState(false);
+  const fileRef = useRef<HTMLInputElement>(null);
 
   useEffect(() => {
     if (!open) {
