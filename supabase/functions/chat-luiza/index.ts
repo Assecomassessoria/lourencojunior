@@ -63,9 +63,32 @@ Deno.serve(async (req) => {
       console.error("kb load error:", e);
     }
 
-    const systemPrompt = custom
+    // Load active PDF documents (knowledge base)
+    let docsContext = "";
+    try {
+      const sb = createClient(
+        Deno.env.get("SUPABASE_URL")!,
+        Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!,
+      );
+      const { data: docs } = await sb
+        .from("luiza_documents")
+        .select("nome, conteudo")
+        .eq("ativo", true);
+      if (docs && docs.length > 0) {
+        docsContext = docs
+          .map((d: any) => `### Documento: ${d.nome}\n${(d.conteudo || "").slice(0, 40000)}`)
+          .join("\n\n");
+      }
+    } catch (e) {
+      console.error("docs load error:", e);
+    }
+
+    let systemPrompt = custom
       ? `${SYSTEM_BASE}\n\n--- INSTRUÇÕES ADICIONAIS DO ADMINISTRADOR ---\n${custom}\n----------------------------------------------`
       : SYSTEM_BASE;
+    if (docsContext) {
+      systemPrompt += `\n\n--- BASE DE CONHECIMENTO (DOCUMENTOS PDF) ---\n${docsContext}\n----------------------------------------------\nUse essas informações como fonte oficial quando responder.`;
+    }
 
     const upstream = await fetch(
       "https://ai.gateway.lovable.dev/v1/chat/completions",
