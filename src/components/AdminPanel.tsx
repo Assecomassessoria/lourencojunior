@@ -521,34 +521,82 @@ const AdminPanel = () => {
         </button>
 
         {showPasswordInput && !isAuthenticated && (
-          <div className="absolute bottom-14 left-0 bg-card p-4 rounded-xl shadow-2xl border border-border w-64">
-            <form onSubmit={handleLogin} className="space-y-3">
-              <input
-                type="email"
-                value={email}
-                onChange={(e) => setEmail(e.target.value)}
-                placeholder="E-mail"
-                required
-                className="w-full p-2 border border-border rounded-lg bg-background text-sm outline-none"
-                autoFocus
-              />
-              <input
-                type="password"
-                value={password}
-                onChange={(e) => setPassword(e.target.value)}
-                placeholder="Senha"
-                required
-                className="w-full p-2 border border-border rounded-lg bg-background text-sm outline-none"
-              />
-              {session && !isAdmin && (
-                <p className="text-xs text-destructive">Conta sem permissão de admin.</p>
-              )}
-              <button type="submit" disabled={signingIn} className="btn-gold w-full py-2 rounded-lg text-xs disabled:opacity-50">
-                {signingIn ? "Entrando..." : "Entrar"}
-              </button>
-            </form>
+          <div className="absolute bottom-14 left-0 bg-card p-4 rounded-xl shadow-2xl border border-border w-72">
+            {setupMode && adminExists === false ? (
+              <form onSubmit={handleSetup} className="space-y-3">
+                <p className="text-xs text-muted-foreground">
+                  Nenhum admin configurado. Crie agora o primeiro acesso administrativo.
+                </p>
+                <input
+                  type="email"
+                  value={email}
+                  onChange={(e) => setEmail(e.target.value)}
+                  placeholder="E-mail do admin"
+                  required
+                  className="w-full p-2 border border-border rounded-lg bg-background text-sm outline-none"
+                  autoFocus
+                />
+                <input
+                  type="password"
+                  value={password}
+                  onChange={(e) => setPassword(e.target.value)}
+                  placeholder="Senha (mín. 8 caracteres)"
+                  required
+                  minLength={8}
+                  className="w-full p-2 border border-border rounded-lg bg-background text-sm outline-none"
+                />
+                <input
+                  type="password"
+                  value={setupPassword2}
+                  onChange={(e) => setSetupPassword2(e.target.value)}
+                  placeholder="Repita a senha"
+                  required
+                  minLength={8}
+                  className="w-full p-2 border border-border rounded-lg bg-background text-sm outline-none"
+                />
+                <button type="submit" disabled={signingIn} className="btn-gold w-full py-2 rounded-lg text-xs disabled:opacity-50">
+                  {signingIn ? "Criando..." : "Criar Admin"}
+                </button>
+              </form>
+            ) : (
+              <form onSubmit={handleLogin} className="space-y-3">
+                <input
+                  type="email"
+                  value={email}
+                  onChange={(e) => setEmail(e.target.value)}
+                  placeholder="E-mail"
+                  required
+                  className="w-full p-2 border border-border rounded-lg bg-background text-sm outline-none"
+                  autoFocus
+                />
+                <input
+                  type="password"
+                  value={password}
+                  onChange={(e) => setPassword(e.target.value)}
+                  placeholder="Senha"
+                  required
+                  className="w-full p-2 border border-border rounded-lg bg-background text-sm outline-none"
+                />
+                {session && !isAdmin && (
+                  <p className="text-xs text-destructive">Conta sem permissão de admin.</p>
+                )}
+                <button type="submit" disabled={signingIn} className="btn-gold w-full py-2 rounded-lg text-xs disabled:opacity-50">
+                  {signingIn ? "Entrando..." : "Entrar"}
+                </button>
+                {adminExists === false && (
+                  <button
+                    type="button"
+                    onClick={() => setSetupMode(true)}
+                    className="w-full text-xs text-accent hover:underline"
+                  >
+                    Configurar primeiro admin
+                  </button>
+                )}
+              </form>
+            )}
           </div>
         )}
+
 
         {isOpen && isAuthenticated && (
           <div className="absolute bottom-14 left-0 bg-card p-6 rounded-xl shadow-2xl border border-border w-72">
