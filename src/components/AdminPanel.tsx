@@ -1015,6 +1015,38 @@ const AdminPanel = () => {
                 )}
               </div>
             )}
+
+            {/* ===== ADICIONAR ADMIN ===== */}
+            {activeModal === "novo-admin" && (
+              <div className="space-y-4">
+                <p className="text-sm text-muted-foreground">
+                  Crie um novo usuário com permissão de administrador. Se o e-mail já existir, a senha será redefinida e o papel admin será atribuído.
+                </p>
+                <input
+                  type="email"
+                  value={newAdminEmail}
+                  onChange={(e) => setNewAdminEmail(e.target.value)}
+                  placeholder="E-mail do novo admin"
+                  className="w-full border border-border p-3 rounded-lg bg-background text-sm"
+                />
+                <input
+                  type="password"
+                  value={newAdminPass}
+                  onChange={(e) => setNewAdminPass(e.target.value)}
+                  placeholder="Senha (mín. 8 caracteres)"
+                  minLength={8}
+                  className="w-full border border-border rounded-lg p-3 bg-background text-sm"
+                />
+                <button
+                  onClick={handleCreateAdditionalAdmin}
+                  disabled={creatingAdmin}
+                  className="btn-gold w-full py-3 rounded-lg"
+                >
+                  {creatingAdmin ? "Criando..." : "Criar Admin"}
+                </button>
+              </div>
+            )}
+
           </div>
         </div>
       )}
