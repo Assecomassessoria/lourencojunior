@@ -88,7 +88,7 @@ const AdminPanel = () => {
 
   const checkAdminExists = useCallback(async () => {
     try {
-      const { data } = await supabase.functions.invoke("bootstrap-admin?action=status", { method: "GET" });
+      const { data } = await supabase.functions.invoke("bootstrap-admin", { body: { action: "status" } });
       if (data && typeof data.admin_exists === "boolean") {
         setAdminExists(data.admin_exists);
         if (!data.admin_exists) setSetupMode(true);
