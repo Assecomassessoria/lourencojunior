@@ -1,9 +1,8 @@
 import { useState, useCallback, useEffect } from "react";
-import { Settings, X, Plus, Image, FileText, Link, MessageSquare, Trash2, Upload, ChevronDown, Edit } from "lucide-react";
+import { Settings, X, Plus, Image, FileText, Link, MessageSquare, Trash2, Upload, ChevronDown, Edit, LogOut } from "lucide-react";
 import { toast } from "sonner";
 import { supabase } from "@/integrations/supabase/client";
-
-const ADMIN_PASSWORD = "472370";
+import { useAdminAuth } from "@/hooks/useAdminAuth";
 
 type Empreendimento = {
   id: string;
@@ -37,10 +36,13 @@ type SiteConfig = {
 };
 
 const AdminPanel = () => {
+  const { isAdmin, signIn, signOut, session, loading } = useAdminAuth();
+  const isAuthenticated = !!session && isAdmin;
   const [isOpen, setIsOpen] = useState(false);
-  const [isAuthenticated, setIsAuthenticated] = useState(false);
   const [showPasswordInput, setShowPasswordInput] = useState(false);
+  const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
+  const [signingIn, setSigningIn] = useState(false);
   const [activeModal, setActiveModal] = useState<string | null>(null);
 
   // Form states - Novo Empreendimento
@@ -87,18 +89,26 @@ const AdminPanel = () => {
     }
   };
 
-  const handleLogin = (e: React.FormEvent) => {
+  const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (password === ADMIN_PASSWORD) {
-      setIsAuthenticated(true);
-      setShowPasswordInput(false);
-      setIsOpen(true);
+    setSigningIn(true);
+    const err = await signIn(email, password);
+    setSigningIn(false);
+    if (err) {
+      toast.error("Credenciais inválidas!");
       setPassword("");
-      toast.success("Acesso administrativo liberado!");
-    } else {
-      toast.error("Senha incorreta!");
-      setPassword("");
+      return;
     }
+    setPassword("");
+    setShowPasswordInput(false);
+    setIsOpen(true);
+    toast.success("Acesso administrativo liberado!");
+  };
+
+  const handleSignOut = async () => {
+    await signOut();
+    setIsOpen(false);
+    toast.success("Você saiu.");
   };
 
   const loadEmpreendimentos = useCallback(async () => {
@@ -439,15 +449,27 @@ const AdminPanel = () => {
           <div className="absolute bottom-14 left-0 bg-card p-4 rounded-xl shadow-2xl border border-border w-64">
             <form onSubmit={handleLogin} className="space-y-3">
               <input
+                type="email"
+                value={email}
+                onChange={(e) => setEmail(e.target.value)}
+                placeholder="E-mail"
+                required
+                className="w-full p-2 border border-border rounded-lg bg-background text-sm outline-none"
+                autoFocus
+              />
+              <input
                 type="password"
                 value={password}
                 onChange={(e) => setPassword(e.target.value)}
                 placeholder="Senha"
+                required
                 className="w-full p-2 border border-border rounded-lg bg-background text-sm outline-none"
-                autoFocus
               />
-              <button type="submit" className="btn-gold w-full py-2 rounded-lg text-xs">
-                Entrar
+              {session && !isAdmin && (
+                <p className="text-xs text-destructive">Conta sem permissão de admin.</p>
+              )}
+              <button type="submit" disabled={signingIn} className="btn-gold w-full py-2 rounded-lg text-xs disabled:opacity-50">
+                {signingIn ? "Entrando..." : "Entrar"}
               </button>
             </form>
           </div>
@@ -455,7 +477,12 @@ const AdminPanel = () => {
 
         {isOpen && isAuthenticated && (
           <div className="absolute bottom-14 left-0 bg-card p-6 rounded-xl shadow-2xl border border-border w-72">
-            <h5 className="font-bold border-b border-border mb-4 pb-2 text-primary">Painel do Site</h5>
+            <div className="flex items-center justify-between border-b border-border mb-4 pb-2">
+              <h5 className="font-bold text-primary">Painel do Site</h5>
+              <button onClick={handleSignOut} title="Sair" className="text-muted-foreground hover:text-destructive">
+                <LogOut className="w-4 h-4" />
+              </button>
+            </div>
             <ul className="space-y-3">
               {menuItems.map((item) => (
                 <li

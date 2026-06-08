@@ -1,10 +1,9 @@
 import { useState, useEffect, useRef } from "react";
 import { motion, AnimatePresence } from "framer-motion";
-import { X, Settings, Trash2, Save, Eye, EyeOff, Upload, FileText, Loader2 } from "lucide-react";
+import { X, Settings, Trash2, Save, Eye, EyeOff, Upload, FileText, Loader2, LogOut } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
-
-const ADMIN_PASSWORD = "472370";
+import { useAdminAuth } from "@/hooks/useAdminAuth";
 
 type Lead = {
   id: string;
@@ -25,9 +24,12 @@ type Doc = {
 };
 
 const LuizaAdminModal = ({ open, onClose }: { open: boolean; onClose: () => void }) => {
-  const [authed, setAuthed] = useState(false);
+  const { isAdmin, loading, signIn, signOut, session } = useAdminAuth();
+  const authed = !!session && isAdmin;
+  const [email, setEmail] = useState("");
   const [pwd, setPwd] = useState("");
   const [showPwd, setShowPwd] = useState(false);
+  const [signingIn, setSigningIn] = useState(false);
   const [tab, setTab] = useState<"kb" | "docs" | "leads">("kb");
   const [instructions, setInstructions] = useState("");
   const [kbId, setKbId] = useState<string | null>(null);
@@ -39,7 +41,6 @@ const LuizaAdminModal = ({ open, onClose }: { open: boolean; onClose: () => void
 
   useEffect(() => {
     if (!open) {
-      setAuthed(false);
       setPwd("");
     }
   }, [open]);
@@ -74,13 +75,16 @@ const LuizaAdminModal = ({ open, onClose }: { open: boolean; onClose: () => void
     setDocs((data as Doc[]) ?? []);
   };
 
-  const handleAuth = (e: React.FormEvent) => {
+  const handleAuth = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (pwd === ADMIN_PASSWORD) {
-      setAuthed(true);
-    } else {
-      toast.error("Senha incorreta");
+    setSigningIn(true);
+    const err = await signIn(email, pwd);
+    setSigningIn(false);
+    if (err) {
+      toast.error("Credenciais inválidas");
+      return;
     }
+    setPwd("");
   };
 
   const saveKb = async () => {
@@ -195,20 +199,36 @@ const LuizaAdminModal = ({ open, onClose }: { open: boolean; onClose: () => void
             <h3 className="font-bold flex items-center gap-2 font-display">
               <Settings size={18} /> Painel Admin — Luiza
             </h3>
-            <button onClick={onClose}><X size={20} /></button>
+            <div className="flex items-center gap-2">
+              {authed && (
+                <button onClick={signOut} title="Sair"><LogOut size={18} /></button>
+              )}
+              <button onClick={onClose}><X size={20} /></button>
+            </div>
           </div>
 
-          {!authed ? (
+          {loading ? (
+            <div className="p-12 flex justify-center"><Loader2 className="animate-spin" /></div>
+          ) : !authed ? (
             <form onSubmit={handleAuth} className="p-8 space-y-4">
-              <p className="text-sm text-muted-foreground">Digite a senha de administrador.</p>
+              <p className="text-sm text-muted-foreground">Acesso restrito ao administrador.</p>
+              <input
+                type="email"
+                value={email}
+                onChange={(e) => setEmail(e.target.value)}
+                placeholder="E-mail"
+                required
+                className="w-full p-3 border border-border rounded-lg bg-background text-foreground focus:ring-2 focus:ring-accent outline-none"
+                autoFocus
+              />
               <div className="relative">
                 <input
                   type={showPwd ? "text" : "password"}
                   value={pwd}
                   onChange={(e) => setPwd(e.target.value)}
                   placeholder="Senha"
+                  required
                   className="w-full p-3 pr-10 border border-border rounded-lg bg-background text-foreground focus:ring-2 focus:ring-accent outline-none"
-                  autoFocus
                 />
                 <button
                   type="button"
@@ -218,8 +238,11 @@ const LuizaAdminModal = ({ open, onClose }: { open: boolean; onClose: () => void
                   {showPwd ? <EyeOff size={18} /> : <Eye size={18} />}
                 </button>
               </div>
-              <button type="submit" className="btn-gold w-full py-3 rounded-lg font-bold">
-                Entrar
+              {session && !isAdmin && (
+                <p className="text-xs text-destructive">Esta conta não tem permissão de admin.</p>
+              )}
+              <button type="submit" disabled={signingIn} className="btn-gold w-full py-3 rounded-lg font-bold disabled:opacity-50">
+                {signingIn ? "Entrando..." : "Entrar"}
               </button>
             </form>
           ) : (
