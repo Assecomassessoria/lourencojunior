@@ -44,6 +44,15 @@ const AdminPanel = () => {
   const [password, setPassword] = useState("");
   const [signingIn, setSigningIn] = useState(false);
   const [activeModal, setActiveModal] = useState<string | null>(null);
+  const [adminExists, setAdminExists] = useState<boolean | null>(null);
+  const [setupMode, setSetupMode] = useState(false);
+  const [setupPassword2, setSetupPassword2] = useState("");
+
+  // Adicionar Admin (autenticado)
+  const [newAdminEmail, setNewAdminEmail] = useState("");
+  const [newAdminPass, setNewAdminPass] = useState("");
+  const [creatingAdmin, setCreatingAdmin] = useState(false);
+
 
   // Form states - Novo Empreendimento
   const [nome, setNome] = useState("");
