@@ -505,7 +505,9 @@ const AdminPanel = () => {
     { id: "textos", label: "Alterar Textos", icon: FileText },
     { id: "links", label: "Atualizar Links", icon: Link },
     { id: "depo", label: "Depoimentos", icon: MessageSquare },
+    { id: "novo-admin", label: "Adicionar Admin", icon: UserPlus },
   ];
+
 
   return (
     <>
