@@ -147,9 +147,10 @@ const AdminPanel = () => {
     }
     setCreatingAdmin(true);
     try {
-      const { data, error } = await supabase.functions.invoke("bootstrap-admin?action=create", {
-        body: { email: newAdminEmail, password: newAdminPass },
+      const { data, error } = await supabase.functions.invoke("bootstrap-admin", {
+        body: { action: "create", email: newAdminEmail, password: newAdminPass },
       });
+
       if (error || data?.error) throw new Error(data?.error || error?.message);
       toast.success("Admin adicionado!");
       setNewAdminEmail("");
