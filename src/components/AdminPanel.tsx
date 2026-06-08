@@ -1,9 +1,8 @@
 import { useState, useCallback, useEffect } from "react";
-import { Settings, X, Plus, Image, FileText, Link, MessageSquare, Trash2, Upload, ChevronDown, Edit } from "lucide-react";
+import { Settings, X, Plus, Image, FileText, Link, MessageSquare, Trash2, Upload, ChevronDown, Edit, LogOut } from "lucide-react";
 import { toast } from "sonner";
 import { supabase } from "@/integrations/supabase/client";
-
-const ADMIN_PASSWORD = "472370";
+import { useAdminAuth } from "@/hooks/useAdminAuth";
 
 type Empreendimento = {
   id: string;
@@ -37,10 +36,13 @@ type SiteConfig = {
 };
 
 const AdminPanel = () => {
+  const { isAdmin, signIn, signOut, session, loading } = useAdminAuth();
+  const isAuthenticated = !!session && isAdmin;
   const [isOpen, setIsOpen] = useState(false);
-  const [isAuthenticated, setIsAuthenticated] = useState(false);
   const [showPasswordInput, setShowPasswordInput] = useState(false);
+  const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
+  const [signingIn, setSigningIn] = useState(false);
   const [activeModal, setActiveModal] = useState<string | null>(null);
 
   // Form states - Novo Empreendimento
@@ -87,18 +89,26 @@ const AdminPanel = () => {
     }
   };
 
-  const handleLogin = (e: React.FormEvent) => {
+  const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (password === ADMIN_PASSWORD) {
-      setIsAuthenticated(true);
-      setShowPasswordInput(false);
-      setIsOpen(true);
+    setSigningIn(true);
+    const err = await signIn(email, password);
+    setSigningIn(false);
+    if (err) {
+      toast.error("Credenciais inválidas!");
       setPassword("");
-      toast.success("Acesso administrativo liberado!");
-    } else {
-      toast.error("Senha incorreta!");
-      setPassword("");
+      return;
     }
+    setPassword("");
+    setShowPasswordInput(false);
+    setIsOpen(true);
+    toast.success("Acesso administrativo liberado!");
+  };
+
+  const handleSignOut = async () => {
+    await signOut();
+    setIsOpen(false);
+    toast.success("Você saiu.");
   };
 
   const loadEmpreendimentos = useCallback(async () => {
