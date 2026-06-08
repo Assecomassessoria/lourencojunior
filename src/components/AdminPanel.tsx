@@ -1,5 +1,5 @@
 import { useState, useCallback, useEffect } from "react";
-import { Settings, X, Plus, Image, FileText, Link, MessageSquare, Trash2, Upload, ChevronDown, Edit, LogOut } from "lucide-react";
+import { Settings, X, Plus, Image, FileText, Link, MessageSquare, Trash2, Upload, ChevronDown, Edit, LogOut, UserPlus } from "lucide-react";
 import { toast } from "sonner";
 import { supabase } from "@/integrations/supabase/client";
 import { useAdminAuth } from "@/hooks/useAdminAuth";
@@ -44,6 +44,15 @@ const AdminPanel = () => {
   const [password, setPassword] = useState("");
   const [signingIn, setSigningIn] = useState(false);
   const [activeModal, setActiveModal] = useState<string | null>(null);
+  const [adminExists, setAdminExists] = useState<boolean | null>(null);
+  const [setupMode, setSetupMode] = useState(false);
+  const [setupPassword2, setSetupPassword2] = useState("");
+
+  // Adicionar Admin (autenticado)
+  const [newAdminEmail, setNewAdminEmail] = useState("");
+  const [newAdminPass, setNewAdminPass] = useState("");
+  const [creatingAdmin, setCreatingAdmin] = useState(false);
+
 
   // Form states - Novo Empreendimento
   const [nome, setNome] = useState("");
@@ -77,6 +86,18 @@ const AdminPanel = () => {
   const [siteConfigs, setSiteConfigs] = useState<SiteConfig[]>([]);
   const [configValues, setConfigValues] = useState<Record<string, string>>({});
 
+  const checkAdminExists = useCallback(async () => {
+    try {
+      const { data } = await supabase.functions.invoke("bootstrap-admin", { body: { action: "status" } });
+      if (data && typeof data.admin_exists === "boolean") {
+        setAdminExists(data.admin_exists);
+        if (!data.admin_exists) setSetupMode(true);
+      }
+    } catch {
+      setAdminExists(true); // fall back to login UI
+    }
+  }, []);
+
   const handleToggle = () => {
     if (isOpen) {
       setIsOpen(false);
@@ -86,8 +107,62 @@ const AdminPanel = () => {
       setIsOpen(true);
     } else {
       setShowPasswordInput(true);
+      if (adminExists === null) checkAdminExists();
     }
   };
+
+  const handleSetup = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (password !== setupPassword2) {
+      toast.error("As senhas não coincidem");
+      return;
+    }
+    if (password.length < 8) {
+      toast.error("Use ao menos 8 caracteres");
+      return;
+    }
+    setSigningIn(true);
+    try {
+      const { data, error } = await supabase.functions.invoke("bootstrap-admin", {
+        body: { action: "create", email, password },
+      });
+
+      if (error || data?.error) throw new Error(data?.error || error?.message);
+      toast.success("Admin criado! Faça login.");
+      setSetupMode(false);
+      setAdminExists(true);
+      setSetupPassword2("");
+      setPassword("");
+    } catch (err: any) {
+      toast.error("Erro: " + err.message);
+    } finally {
+      setSigningIn(false);
+    }
+  };
+
+  const handleCreateAdditionalAdmin = async () => {
+    if (!newAdminEmail || newAdminPass.length < 8) {
+      toast.error("Informe e-mail e senha (mín. 8 caracteres)");
+      return;
+    }
+    setCreatingAdmin(true);
+    try {
+      const { data, error } = await supabase.functions.invoke("bootstrap-admin", {
+        body: { action: "create", email: newAdminEmail, password: newAdminPass },
+      });
+
+      if (error || data?.error) throw new Error(data?.error || error?.message);
+      toast.success("Admin adicionado!");
+      setNewAdminEmail("");
+      setNewAdminPass("");
+      setActiveModal(null);
+    } catch (err: any) {
+      toast.error("Erro: " + err.message);
+    } finally {
+      setCreatingAdmin(false);
+    }
+  };
+
 
   const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -432,7 +507,9 @@ const AdminPanel = () => {
     { id: "textos", label: "Alterar Textos", icon: FileText },
     { id: "links", label: "Atualizar Links", icon: Link },
     { id: "depo", label: "Depoimentos", icon: MessageSquare },
+    { id: "novo-admin", label: "Adicionar Admin", icon: UserPlus },
   ];
+
 
   return (
     <>
@@ -446,34 +523,82 @@ const AdminPanel = () => {
         </button>
 
         {showPasswordInput && !isAuthenticated && (
-          <div className="absolute bottom-14 left-0 bg-card p-4 rounded-xl shadow-2xl border border-border w-64">
-            <form onSubmit={handleLogin} className="space-y-3">
-              <input
-                type="email"
-                value={email}
-                onChange={(e) => setEmail(e.target.value)}
-                placeholder="E-mail"
-                required
-                className="w-full p-2 border border-border rounded-lg bg-background text-sm outline-none"
-                autoFocus
-              />
-              <input
-                type="password"
-                value={password}
-                onChange={(e) => setPassword(e.target.value)}
-                placeholder="Senha"
-                required
-                className="w-full p-2 border border-border rounded-lg bg-background text-sm outline-none"
-              />
-              {session && !isAdmin && (
-                <p className="text-xs text-destructive">Conta sem permissão de admin.</p>
-              )}
-              <button type="submit" disabled={signingIn} className="btn-gold w-full py-2 rounded-lg text-xs disabled:opacity-50">
-                {signingIn ? "Entrando..." : "Entrar"}
-              </button>
-            </form>
+          <div className="absolute bottom-14 left-0 bg-card p-4 rounded-xl shadow-2xl border border-border w-72">
+            {setupMode && adminExists === false ? (
+              <form onSubmit={handleSetup} className="space-y-3">
+                <p className="text-xs text-muted-foreground">
+                  Nenhum admin configurado. Crie agora o primeiro acesso administrativo.
+                </p>
+                <input
+                  type="email"
+                  value={email}
+                  onChange={(e) => setEmail(e.target.value)}
+                  placeholder="E-mail do admin"
+                  required
+                  className="w-full p-2 border border-border rounded-lg bg-background text-sm outline-none"
+                  autoFocus
+                />
+                <input
+                  type="password"
+                  value={password}
+                  onChange={(e) => setPassword(e.target.value)}
+                  placeholder="Senha (mín. 8 caracteres)"
+                  required
+                  minLength={8}
+                  className="w-full p-2 border border-border rounded-lg bg-background text-sm outline-none"
+                />
+                <input
+                  type="password"
+                  value={setupPassword2}
+                  onChange={(e) => setSetupPassword2(e.target.value)}
+                  placeholder="Repita a senha"
+                  required
+                  minLength={8}
+                  className="w-full p-2 border border-border rounded-lg bg-background text-sm outline-none"
+                />
+                <button type="submit" disabled={signingIn} className="btn-gold w-full py-2 rounded-lg text-xs disabled:opacity-50">
+                  {signingIn ? "Criando..." : "Criar Admin"}
+                </button>
+              </form>
+            ) : (
+              <form onSubmit={handleLogin} className="space-y-3">
+                <input
+                  type="email"
+                  value={email}
+                  onChange={(e) => setEmail(e.target.value)}
+                  placeholder="E-mail"
+                  required
+                  className="w-full p-2 border border-border rounded-lg bg-background text-sm outline-none"
+                  autoFocus
+                />
+                <input
+                  type="password"
+                  value={password}
+                  onChange={(e) => setPassword(e.target.value)}
+                  placeholder="Senha"
+                  required
+                  className="w-full p-2 border border-border rounded-lg bg-background text-sm outline-none"
+                />
+                {session && !isAdmin && (
+                  <p className="text-xs text-destructive">Conta sem permissão de admin.</p>
+                )}
+                <button type="submit" disabled={signingIn} className="btn-gold w-full py-2 rounded-lg text-xs disabled:opacity-50">
+                  {signingIn ? "Entrando..." : "Entrar"}
+                </button>
+                {adminExists === false && (
+                  <button
+                    type="button"
+                    onClick={() => setSetupMode(true)}
+                    className="w-full text-xs text-accent hover:underline"
+                  >
+                    Configurar primeiro admin
+                  </button>
+                )}
+              </form>
+            )}
           </div>
         )}
+
 
         {isOpen && isAuthenticated && (
           <div className="absolute bottom-14 left-0 bg-card p-6 rounded-xl shadow-2xl border border-border w-72">
@@ -892,6 +1017,38 @@ const AdminPanel = () => {
                 )}
               </div>
             )}
+
+            {/* ===== ADICIONAR ADMIN ===== */}
+            {activeModal === "novo-admin" && (
+              <div className="space-y-4">
+                <p className="text-sm text-muted-foreground">
+                  Crie um novo usuário com permissão de administrador. Se o e-mail já existir, a senha será redefinida e o papel admin será atribuído.
+                </p>
+                <input
+                  type="email"
+                  value={newAdminEmail}
+                  onChange={(e) => setNewAdminEmail(e.target.value)}
+                  placeholder="E-mail do novo admin"
+                  className="w-full border border-border p-3 rounded-lg bg-background text-sm"
+                />
+                <input
+                  type="password"
+                  value={newAdminPass}
+                  onChange={(e) => setNewAdminPass(e.target.value)}
+                  placeholder="Senha (mín. 8 caracteres)"
+                  minLength={8}
+                  className="w-full border border-border rounded-lg p-3 bg-background text-sm"
+                />
+                <button
+                  onClick={handleCreateAdditionalAdmin}
+                  disabled={creatingAdmin}
+                  className="btn-gold w-full py-3 rounded-lg"
+                >
+                  {creatingAdmin ? "Criando..." : "Criar Admin"}
+                </button>
+              </div>
+            )}
+
           </div>
         </div>
       )}
