@@ -123,9 +123,10 @@ const AdminPanel = () => {
     }
     setSigningIn(true);
     try {
-      const { data, error } = await supabase.functions.invoke("bootstrap-admin?action=create", {
-        body: { email, password },
+      const { data, error } = await supabase.functions.invoke("bootstrap-admin", {
+        body: { action: "create", email, password },
       });
+
       if (error || data?.error) throw new Error(data?.error || error?.message);
       toast.success("Admin criado! Faça login.");
       setSetupMode(false);
