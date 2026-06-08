@@ -3,8 +3,7 @@ import { createClient } from "https://esm.sh/@supabase/supabase-js@2.45.0";
 
 const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
-  "Access-Control-Allow-Headers":
-    "authorization, x-client-info, apikey, content-type",
+  "Access-Control-Allow-Headers": "authorization, x-client-info, apikey, content-type",
 };
 
 const SYSTEM_BASE = `Você é a Luiza, a assistente virtual especializada do "Simulador Corretor de Elite 4.0". Sua função é tirar dúvidas dos corretores sobre o sistema.
@@ -27,7 +26,7 @@ Acesso e Segurança:
 - Sessão Única: O sistema detecta e bloqueia acessos simultâneos com a mesma conta para garantir a segurança dos dados.
 
 Suporte e Vendas:
-- Para adquirir licenças, renovar ou tirar dúvidas técnicas urgentes, o contato oficial é com Lourenço Junior pelo WhatsApp (11) 94677-0656.
+- Para adquirir licenças, renovar ou tirar dúvidas técnicas urgentes, o contato oficial é com Lourenço Junior pelo WhatsApp (11) 94677-0625.
 - O site oficial para informações de compra é https://simuladorcorretorelite.com.br/.
 
 Instruções de Resposta:
@@ -48,10 +47,7 @@ Deno.serve(async (req) => {
     // Load custom instructions from DB
     let custom = "";
     try {
-      const sb = createClient(
-        Deno.env.get("SUPABASE_URL")!,
-        Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!,
-      );
+      const sb = createClient(Deno.env.get("SUPABASE_URL")!, Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!);
       const { data } = await sb
         .from("luiza_kb")
         .select("custom_instructions")
@@ -66,14 +62,8 @@ Deno.serve(async (req) => {
     // Load active PDF documents (knowledge base)
     let docsContext = "";
     try {
-      const sb = createClient(
-        Deno.env.get("SUPABASE_URL")!,
-        Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!,
-      );
-      const { data: docs } = await sb
-        .from("luiza_documents")
-        .select("nome, conteudo")
-        .eq("ativo", true);
+      const sb = createClient(Deno.env.get("SUPABASE_URL")!, Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!);
+      const { data: docs } = await sb.from("luiza_documents").select("nome, conteudo").eq("ativo", true);
       if (docs && docs.length > 0) {
         docsContext = docs
           .map((d: any) => `### Documento: ${d.nome}\n${(d.conteudo || "").slice(0, 40000)}`)
@@ -90,34 +80,31 @@ Deno.serve(async (req) => {
       systemPrompt += `\n\n--- BASE DE CONHECIMENTO (DOCUMENTOS PDF) ---\n${docsContext}\n----------------------------------------------\nUse essas informações como fonte oficial quando responder.`;
     }
 
-    const upstream = await fetch(
-      "https://ai.gateway.lovable.dev/v1/chat/completions",
-      {
-        method: "POST",
-        headers: {
-          Authorization: `Bearer ${LOVABLE_API_KEY}`,
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify({
-          model: "google/gemini-2.5-flash",
-          messages: [{ role: "system", content: systemPrompt }, ...messages],
-          stream: true,
-        }),
+    const upstream = await fetch("https://ai.gateway.lovable.dev/v1/chat/completions", {
+      method: "POST",
+      headers: {
+        Authorization: `Bearer ${LOVABLE_API_KEY}`,
+        "Content-Type": "application/json",
       },
-    );
+      body: JSON.stringify({
+        model: "google/gemini-2.5-flash",
+        messages: [{ role: "system", content: systemPrompt }, ...messages],
+        stream: true,
+      }),
+    });
 
     if (!upstream.ok) {
       if (upstream.status === 429) {
-        return new Response(
-          JSON.stringify({ error: "Muitas mensagens. Aguarde um instante." }),
-          { status: 429, headers: { ...corsHeaders, "Content-Type": "application/json" } },
-        );
+        return new Response(JSON.stringify({ error: "Muitas mensagens. Aguarde um instante." }), {
+          status: 429,
+          headers: { ...corsHeaders, "Content-Type": "application/json" },
+        });
       }
       if (upstream.status === 402) {
-        return new Response(
-          JSON.stringify({ error: "Créditos de IA esgotados." }),
-          { status: 402, headers: { ...corsHeaders, "Content-Type": "application/json" } },
-        );
+        return new Response(JSON.stringify({ error: "Créditos de IA esgotados." }), {
+          status: 402,
+          headers: { ...corsHeaders, "Content-Type": "application/json" },
+        });
       }
       const t = await upstream.text();
       console.error("gateway error:", upstream.status, t);
@@ -132,9 +119,9 @@ Deno.serve(async (req) => {
     });
   } catch (e) {
     console.error("chat-luiza error:", e);
-    return new Response(
-      JSON.stringify({ error: e instanceof Error ? e.message : "unknown" }),
-      { status: 500, headers: { ...corsHeaders, "Content-Type": "application/json" } },
-    );
+    return new Response(JSON.stringify({ error: e instanceof Error ? e.message : "unknown" }), {
+      status: 500,
+      headers: { ...corsHeaders, "Content-Type": "application/json" },
+    });
   }
 });
