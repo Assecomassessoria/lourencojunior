@@ -49,7 +49,8 @@ Deno.serve(async (req) => {
 
   try {
     const url = new URL(req.url);
-    const action = url.searchParams.get("action") ?? (req.method === "GET" ? "status" : "create");
+    const body = req.method === "POST" ? await req.json().catch(() => ({})) : {};
+    const action = url.searchParams.get("action") ?? body.action ?? (req.method === "GET" ? "status" : "create");
 
     if (action === "status") {
       const count = await adminCount();
@@ -57,9 +58,10 @@ Deno.serve(async (req) => {
     }
 
     if (action === "create") {
-      const body = await req.json().catch(() => ({}));
       const email = (body.email ?? "").trim().toLowerCase();
       const password = body.password ?? "";
+
+
 
       if (!validEmail(email)) return json({ error: "E-mail inválido" }, 400);
       if (typeof password !== "string" || password.length < 8) {
