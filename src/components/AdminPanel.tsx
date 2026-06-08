@@ -86,6 +86,18 @@ const AdminPanel = () => {
   const [siteConfigs, setSiteConfigs] = useState<SiteConfig[]>([]);
   const [configValues, setConfigValues] = useState<Record<string, string>>({});
 
+  const checkAdminExists = useCallback(async () => {
+    try {
+      const { data } = await supabase.functions.invoke("bootstrap-admin?action=status", { method: "GET" });
+      if (data && typeof data.admin_exists === "boolean") {
+        setAdminExists(data.admin_exists);
+        if (!data.admin_exists) setSetupMode(true);
+      }
+    } catch {
+      setAdminExists(true); // fall back to login UI
+    }
+  }, []);
+
   const handleToggle = () => {
     if (isOpen) {
       setIsOpen(false);
@@ -95,8 +107,60 @@ const AdminPanel = () => {
       setIsOpen(true);
     } else {
       setShowPasswordInput(true);
+      if (adminExists === null) checkAdminExists();
     }
   };
+
+  const handleSetup = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (password !== setupPassword2) {
+      toast.error("As senhas não coincidem");
+      return;
+    }
+    if (password.length < 8) {
+      toast.error("Use ao menos 8 caracteres");
+      return;
+    }
+    setSigningIn(true);
+    try {
+      const { data, error } = await supabase.functions.invoke("bootstrap-admin?action=create", {
+        body: { email, password },
+      });
+      if (error || data?.error) throw new Error(data?.error || error?.message);
+      toast.success("Admin criado! Faça login.");
+      setSetupMode(false);
+      setAdminExists(true);
+      setSetupPassword2("");
+      setPassword("");
+    } catch (err: any) {
+      toast.error("Erro: " + err.message);
+    } finally {
+      setSigningIn(false);
+    }
+  };
+
+  const handleCreateAdditionalAdmin = async () => {
+    if (!newAdminEmail || newAdminPass.length < 8) {
+      toast.error("Informe e-mail e senha (mín. 8 caracteres)");
+      return;
+    }
+    setCreatingAdmin(true);
+    try {
+      const { data, error } = await supabase.functions.invoke("bootstrap-admin?action=create", {
+        body: { email: newAdminEmail, password: newAdminPass },
+      });
+      if (error || data?.error) throw new Error(data?.error || error?.message);
+      toast.success("Admin adicionado!");
+      setNewAdminEmail("");
+      setNewAdminPass("");
+      setActiveModal(null);
+    } catch (err: any) {
+      toast.error("Erro: " + err.message);
+    } finally {
+      setCreatingAdmin(false);
+    }
+  };
+
 
   const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault();
