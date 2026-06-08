@@ -6,6 +6,9 @@ import {
 import type { TemplateEntry } from './registry.ts'
 
 const SITE_NAME = 'Lourenço Junior'
+// Fixed recipient — locks down the function so anonymous callers can't
+// send notifications to arbitrary addresses.
+const OWNER_EMAIL = 'lourenco.consultorimob@gmail.com'
 
 interface LuizaNewLeadProps {
   nome?: string
@@ -56,6 +59,7 @@ const LuizaNewLeadEmail = ({
 
 export const template = {
   component: LuizaNewLeadEmail,
+  to: OWNER_EMAIL,
   subject: (data: Record<string, any>) =>
     `🚀 Novo Lead Luiza — ${data?.nome ?? 'Novo contato'}`,
   displayName: 'Novo lead da Luiza',
