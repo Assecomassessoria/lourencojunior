@@ -449,15 +449,27 @@ const AdminPanel = () => {
           <div className="absolute bottom-14 left-0 bg-card p-4 rounded-xl shadow-2xl border border-border w-64">
             <form onSubmit={handleLogin} className="space-y-3">
               <input
+                type="email"
+                value={email}
+                onChange={(e) => setEmail(e.target.value)}
+                placeholder="E-mail"
+                required
+                className="w-full p-2 border border-border rounded-lg bg-background text-sm outline-none"
+                autoFocus
+              />
+              <input
                 type="password"
                 value={password}
                 onChange={(e) => setPassword(e.target.value)}
                 placeholder="Senha"
+                required
                 className="w-full p-2 border border-border rounded-lg bg-background text-sm outline-none"
-                autoFocus
               />
-              <button type="submit" className="btn-gold w-full py-2 rounded-lg text-xs">
-                Entrar
+              {session && !isAdmin && (
+                <p className="text-xs text-destructive">Conta sem permissão de admin.</p>
+              )}
+              <button type="submit" disabled={signingIn} className="btn-gold w-full py-2 rounded-lg text-xs disabled:opacity-50">
+                {signingIn ? "Entrando..." : "Entrar"}
               </button>
             </form>
           </div>
@@ -465,7 +477,12 @@ const AdminPanel = () => {
 
         {isOpen && isAuthenticated && (
           <div className="absolute bottom-14 left-0 bg-card p-6 rounded-xl shadow-2xl border border-border w-72">
-            <h5 className="font-bold border-b border-border mb-4 pb-2 text-primary">Painel do Site</h5>
+            <div className="flex items-center justify-between border-b border-border mb-4 pb-2">
+              <h5 className="font-bold text-primary">Painel do Site</h5>
+              <button onClick={handleSignOut} title="Sair" className="text-muted-foreground hover:text-destructive">
+                <LogOut className="w-4 h-4" />
+              </button>
+            </div>
             <ul className="space-y-3">
               {menuItems.map((item) => (
                 <li
