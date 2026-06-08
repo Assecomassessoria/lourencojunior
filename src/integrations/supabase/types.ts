@@ -196,6 +196,30 @@ export type Database = {
         }
         Relationships: []
       }
+      leads_empreendimento: {
+        Row: {
+          data_cadastro: string | null
+          email: string
+          empreendimento: string
+          nome: string
+          whatsapp: string
+        }
+        Insert: {
+          data_cadastro?: string | null
+          email: string
+          empreendimento: string
+          nome: string
+          whatsapp: string
+        }
+        Update: {
+          data_cadastro?: string | null
+          email?: string
+          empreendimento?: string
+          nome?: string
+          whatsapp?: string
+        }
+        Relationships: []
+      }
       luiza_documents: {
         Row: {
           arquivo_path: string
