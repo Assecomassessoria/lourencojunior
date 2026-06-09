@@ -14,6 +14,51 @@ export type Database = {
   }
   public: {
     Tables: {
+      clientes_elite: {
+        Row: {
+          criado_em: string
+          email: string
+          empreendimento_interesse: string | null
+          id: string
+          melhor_horario_contato: string | null
+          nome: string
+          observacoes: string | null
+          renda_comprovada: number | null
+          sistema_amortizacao: string | null
+          status_funil: string | null
+          valor_fgts: number | null
+          whatsapp: string
+        }
+        Insert: {
+          criado_em?: string
+          email: string
+          empreendimento_interesse?: string | null
+          id?: string
+          melhor_horario_contato?: string | null
+          nome: string
+          observacoes?: string | null
+          renda_comprovada?: number | null
+          sistema_amortizacao?: string | null
+          status_funil?: string | null
+          valor_fgts?: number | null
+          whatsapp: string
+        }
+        Update: {
+          criado_em?: string
+          email?: string
+          empreendimento_interesse?: string | null
+          id?: string
+          melhor_horario_contato?: string | null
+          nome?: string
+          observacoes?: string | null
+          renda_comprovada?: number | null
+          sistema_amortizacao?: string | null
+          status_funil?: string | null
+          valor_fgts?: number | null
+          whatsapp?: string
+        }
+        Relationships: []
+      }
       depoimentos: {
         Row: {
           ativo: boolean | null
