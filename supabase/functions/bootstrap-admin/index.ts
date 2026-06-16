@@ -53,8 +53,14 @@ Deno.serve(async (req) => {
     const action = url.searchParams.get("action") ?? body.action ?? (req.method === "GET" ? "status" : "create");
 
     if (action === "status") {
+      // Only expose a boolean — never the count — to limit reconnaissance value.
+      // Once an admin exists, require an authenticated admin caller to read status.
       const count = await adminCount();
-      return json({ admin_exists: count > 0, count });
+      if (count > 0) {
+        const ok = await isCallerAdmin(req);
+        if (!ok) return json({ admin_exists: true }, 200);
+      }
+      return json({ admin_exists: count > 0 });
     }
 
     if (action === "create") {
