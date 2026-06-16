@@ -1,5 +1,6 @@
 // Edge function: Luiza chat (Lovable AI Gateway, streaming)
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2.45.0";
+import { clientIp, rateLimit } from "../_shared/rate-limit.ts";
 
 const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
