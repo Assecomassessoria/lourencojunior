@@ -63,6 +63,16 @@ Deno.serve(async (req) => {
   }
 
   try {
+    // Per-IP rate limit to prevent AI credit abuse via the public anon key.
+    const ip = clientIp(req);
+    const rl = await rateLimit(`chat-luiza:${ip}`, 10);
+    if (!rl.ok) {
+      return new Response(
+        JSON.stringify({ error: "Muitas mensagens. Aguarde um minuto e tente novamente." }),
+        { status: 429, headers: { ...corsHeaders, "Content-Type": "application/json" } },
+      );
+    }
+
     const { messages } = await req.json();
     const LOVABLE_API_KEY = Deno.env.get("LOVABLE_API_KEY");
     if (!LOVABLE_API_KEY) throw new Error("LOVABLE_API_KEY not configured");
