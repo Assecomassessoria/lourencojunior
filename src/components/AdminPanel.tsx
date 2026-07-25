@@ -377,6 +377,26 @@ const AdminPanel = () => {
     }
   };
 
+  const handleMoveFoto = async (index: number, direction: -1 | 1) => {
+    const target = index + direction;
+    if (target < 0 || target >= empFotos.length) return;
+    const reordered = [...empFotos];
+    [reordered[index], reordered[target]] = [reordered[target], reordered[index]];
+    // Optimistic UI
+    setEmpFotos(reordered.map((f, i) => ({ ...f, ordem: i })));
+    try {
+      await Promise.all(
+        reordered.map((f, i) =>
+          supabase.from("empreendimento_fotos").update({ ordem: i }).eq("id", f.id),
+        ),
+      );
+      if (selectedEmpId) loadFotosForEmp(selectedEmpId);
+    } catch (err: any) {
+      toast.error("Erro ao reordenar: " + err.message);
+      if (selectedEmpId) loadFotosForEmp(selectedEmpId);
+    }
+  };
+
   const handleAddPhotosToEmp = async () => {
     if (!selectedEmpId) {
       toast.error("Selecione um empreendimento");
