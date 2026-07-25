@@ -1,8 +1,11 @@
 import { motion } from "framer-motion";
 import { useEffect, useState, useCallback } from "react";
+import { Link } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
 import useEmblaCarousel from "embla-carousel-react";
-import { ChevronLeft, ChevronRight } from "lucide-react";
+import { ChevronLeft, ChevronRight, Copy } from "lucide-react";
+import { toast } from "@/hooks/use-toast";
+import { slugify } from "@/lib/slug";
 import empreendimento1 from "@/assets/empreendimento-1.jpg";
 
 type Empreendimento = {
@@ -182,11 +185,26 @@ const EmpreendimentosSection = () => {
                     <h4 className="text-xl font-display font-bold text-primary mb-2">{emp.nome}</h4>
                     <p className="text-muted-foreground text-sm mb-2">{emp.descricao}</p>
                     <p className="text-muted-foreground text-sm mb-4">{emp.detalhe}</p>
-                    <div className="flex justify-between items-center border-t border-border pt-4">
+                    <div className="flex justify-between items-center border-t border-border pt-4 gap-2">
                       <span className="text-accent font-bold font-display">{emp.preco}</span>
-                      <a href="#fale-conosco" className="text-accent font-semibold hover:underline text-sm">
-                        Saiba Mais
-                      </a>
+                      <div className="flex items-center gap-3">
+                        <button
+                          onClick={(e) => {
+                            e.preventDefault();
+                            const url = `${window.location.origin}/${slugify(emp.nome)}`;
+                            navigator.clipboard.writeText(url);
+                            toast({ title: "Link copiado!", description: url });
+                          }}
+                          className="text-muted-foreground hover:text-accent transition"
+                          title="Copiar link de divulgação"
+                          aria-label="Copiar link"
+                        >
+                          <Copy className="w-4 h-4" />
+                        </button>
+                        <Link to={`/${slugify(emp.nome)}`} className="text-accent font-semibold hover:underline text-sm">
+                          Saiba Mais
+                        </Link>
+                      </div>
                     </div>
                   </div>
                 </motion.div>
