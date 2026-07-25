@@ -1,5 +1,5 @@
 import { useState, useCallback, useEffect } from "react";
-import { Settings, X, Plus, Image, FileText, Link, MessageSquare, Trash2, Upload, ChevronDown, Edit, LogOut, UserPlus } from "lucide-react";
+import { Settings, X, Plus, Image, FileText, Link, MessageSquare, Trash2, Upload, ChevronDown, Edit, LogOut, UserPlus, ArrowUp, ArrowDown } from "lucide-react";
 import { toast } from "sonner";
 import { supabase } from "@/integrations/supabase/client";
 import { useAdminAuth } from "@/hooks/useAdminAuth";
@@ -374,6 +374,26 @@ const AdminPanel = () => {
       if (selectedEmpId) loadFotosForEmp(selectedEmpId);
     } catch (err: any) {
       toast.error("Erro ao remover: " + err.message);
+    }
+  };
+
+  const handleMoveFoto = async (index: number, direction: -1 | 1) => {
+    const target = index + direction;
+    if (target < 0 || target >= empFotos.length) return;
+    const reordered = [...empFotos];
+    [reordered[index], reordered[target]] = [reordered[target], reordered[index]];
+    // Optimistic UI
+    setEmpFotos(reordered.map((f, i) => ({ ...f, ordem: i })));
+    try {
+      await Promise.all(
+        reordered.map((f, i) =>
+          supabase.from("empreendimento_fotos").update({ ordem: i }).eq("id", f.id),
+        ),
+      );
+      if (selectedEmpId) loadFotosForEmp(selectedEmpId);
+    } catch (err: any) {
+      toast.error("Erro ao reordenar: " + err.message);
+      if (selectedEmpId) loadFotosForEmp(selectedEmpId);
     }
   };
 
@@ -831,9 +851,32 @@ const AdminPanel = () => {
 
                     {/* Fotos existentes */}
                     <div className="grid grid-cols-3 gap-2">
-                      {empFotos.map((foto) => (
+                      {empFotos.map((foto, idx) => (
                         <div key={foto.id} className="relative group">
                           <img src={foto.foto_url} alt="Foto" className="w-full h-20 object-cover rounded-lg" />
+                          <div className="absolute top-1 left-1 bg-primary/70 text-accent text-[10px] font-bold px-1.5 py-0.5 rounded">
+                            {idx + 1}
+                          </div>
+                          <div className="absolute bottom-1 left-1 right-1 flex justify-between opacity-0 group-hover:opacity-100 transition-opacity">
+                            <button
+                              type="button"
+                              onClick={() => handleMoveFoto(idx, -1)}
+                              disabled={idx === 0}
+                              className="bg-primary/80 hover:bg-primary text-accent rounded p-1 disabled:opacity-30 disabled:cursor-not-allowed"
+                              title="Mover para trás"
+                            >
+                              <ArrowUp className="w-3 h-3" />
+                            </button>
+                            <button
+                              type="button"
+                              onClick={() => handleMoveFoto(idx, 1)}
+                              disabled={idx === empFotos.length - 1}
+                              className="bg-primary/80 hover:bg-primary text-accent rounded p-1 disabled:opacity-30 disabled:cursor-not-allowed"
+                              title="Mover para frente"
+                            >
+                              <ArrowDown className="w-3 h-3" />
+                            </button>
+                          </div>
                           {empFotos.length > 1 && (
                             <button
                               onClick={() => handleDeleteFoto(foto)}
