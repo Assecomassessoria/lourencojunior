@@ -851,9 +851,32 @@ const AdminPanel = () => {
 
                     {/* Fotos existentes */}
                     <div className="grid grid-cols-3 gap-2">
-                      {empFotos.map((foto) => (
+                      {empFotos.map((foto, idx) => (
                         <div key={foto.id} className="relative group">
                           <img src={foto.foto_url} alt="Foto" className="w-full h-20 object-cover rounded-lg" />
+                          <div className="absolute top-1 left-1 bg-primary/70 text-accent text-[10px] font-bold px-1.5 py-0.5 rounded">
+                            {idx + 1}
+                          </div>
+                          <div className="absolute bottom-1 left-1 right-1 flex justify-between opacity-0 group-hover:opacity-100 transition-opacity">
+                            <button
+                              type="button"
+                              onClick={() => handleMoveFoto(idx, -1)}
+                              disabled={idx === 0}
+                              className="bg-primary/80 hover:bg-primary text-accent rounded p-1 disabled:opacity-30 disabled:cursor-not-allowed"
+                              title="Mover para trás"
+                            >
+                              <ArrowUp className="w-3 h-3" />
+                            </button>
+                            <button
+                              type="button"
+                              onClick={() => handleMoveFoto(idx, 1)}
+                              disabled={idx === empFotos.length - 1}
+                              className="bg-primary/80 hover:bg-primary text-accent rounded p-1 disabled:opacity-30 disabled:cursor-not-allowed"
+                              title="Mover para frente"
+                            >
+                              <ArrowDown className="w-3 h-3" />
+                            </button>
+                          </div>
                           {empFotos.length > 1 && (
                             <button
                               onClick={() => handleDeleteFoto(foto)}
