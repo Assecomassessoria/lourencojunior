@@ -3,6 +3,7 @@ import { Settings, X, Plus, Image, FileText, Link, MessageSquare, Trash2, Upload
 import { toast } from "sonner";
 import { supabase } from "@/integrations/supabase/client";
 import { useAdminAuth } from "@/hooks/useAdminAuth";
+import { slugify } from "@/lib/slug";
 
 type Empreendimento = {
   id: string;
@@ -292,8 +293,10 @@ const AdminPanel = () => {
   };
 
   const uploadImage = async (file: File, path: string) => {
-    const ext = file.name.split(".").pop();
-    const fileName = `${path}-${Date.now()}-${Math.random().toString(36).slice(2)}.${ext}`;
+    const originalExtension = file.name.split(".").pop()?.toLowerCase() ?? "jpg";
+    const extension = originalExtension.replace(/[^a-z0-9]/g, "") || "jpg";
+    const safePath = slugify(path) || "foto";
+    const fileName = `${safePath}-${Date.now()}-${Math.random().toString(36).slice(2)}.${extension}`;
     const { error } = await supabase.storage.from("empreendimentos").upload(fileName, file, { upsert: true });
     if (error) throw error;
     const { data: urlData } = supabase.storage.from("empreendimentos").getPublicUrl(fileName);
@@ -318,7 +321,7 @@ const AdminPanel = () => {
 
     setSaving(true);
     try {
-      const slug = nome.toLowerCase().replace(/\s+/g, "-");
+      const slug = slugify(nome);
       const { data: empData, error } = await supabase
         .from("empreendimentos")
         .insert({
@@ -417,7 +420,7 @@ const AdminPanel = () => {
     setSaving(true);
     try {
       const emp = empreendimentos.find((e) => e.id === selectedEmpId);
-      const slug = emp?.nome.toLowerCase().replace(/\s+/g, "-") || "foto";
+      const slug = emp?.nome ? slugify(emp.nome) : "foto";
 
       for (let i = 0; i < photoFiles.length; i++) {
         const url = await uploadImage(photoFiles[i], slug);
